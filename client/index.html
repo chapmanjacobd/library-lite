@@ -1,20 +1,27 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <script type="text/javascript" src="js/elm.js"></script>
-</head>
-<body>
-</body>
-<script type="text/javascript">
-    var storageKey = "token";
-    var app = Elm.Main.fullscreen();
-    app.ports.save.subscribe(function(value) {
-      localStorage.setItem(storageKey, value);
-    });
-    app.ports.doload.subscribe(function() {
-      app.ports.load.send(localStorage.getItem(storageKey));
-    });
-</script>
-</html>
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="UTF-8" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ejectube</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+  <div x-data="{ open: false }">
+    <button @click="app.fetchPlaylistInfo('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')">Fetch</button>
+  </div>
+
+  <script>
+
+  </script>
+
+</body>
+
+</html>
