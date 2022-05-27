@@ -14,8 +14,6 @@ Alpine.start()
 
 
 alasql('CREATE localStorage DATABASE IF NOT EXISTS Videos')
-alasql('ATTACH localStorage DATABASE Videos AS RuntimeDB')
-alasql('SET AUTOCOMMIT ON')
 
 
 window.app = {
@@ -24,17 +22,14 @@ window.app = {
     fetch("http://127.0.0.1:8000/v1?playlist=" + playlist)
       .then(response => response.json())
       .then(data => {
-        const schema = obj2schema(data, 'videos')
-        Object.keys(schema).map(k => {
-          const columns = schema[k].join(',')
-          const sql = `CREATE TABLE IF NOT EXISTS ${k} (${columns})`
-          // console.log(sql);
-          console.log(data[k]);
+        alasql('ATTACH localStorage DATABASE Videos AS RuntimeDB')
+        alasql('SET AUTOCOMMIT ON')
 
-          alasql(sql);
-          alasql(`INSERT INTO ${k} SELECT * FROM ?`, [data[k]])
-        });
-
+        alasql(`DELETE from videos where webpage_url = "${data.webpage_url}"`)
+        alasql('CREATE TABLE IF NOT EXISTS videos');
+        alasql(`INSERT INTO videos SELECT * FROM ?`, [[data]])
       })
   }
 }
+
+app.fetchPlaylistInfo('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')

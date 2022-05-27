@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+yt-dlp = "*"
+starlette = "*"
+polars = "*"
+cachetools = "*"
+zstandard = "*"
+slowapi = "*"
+uvicorn = "*"
+
+[dev-packages]
+ssort = "*"
+isort = "*"
+black = "*"
+pylint = "*"
+rich = "*"
+
+[requires]
+python_version = "3.9"
