@@ -29,16 +29,12 @@ window.Alpine = Alpine
 window.LiteYTEmbed = LiteYTEmbed
 
 window.app = {
-  alpineUpdate: function (evtName: string) {
-    const event = new Event(evtName)
-    window.dispatchEvent(event)
-  },
   fetchPlaylist: async function (playlist: string) {
     if (playlist.length < 5) return;
 
     console.log('fetching new playlist');
 
-    fetch(`${API_domain}?playlist=` + playlist)
+    await fetch(`${API_domain}?playlist=` + playlist)
       .then(response => response.json())
       .then(data => {
         alasql('ATTACH localStorage DATABASE RuntimeDB')
@@ -46,7 +42,7 @@ window.app = {
 
         alasql(`DELETE from videos where webpage_url = "${data.webpage_url}"`)
         alasql(`INSERT INTO videos SELECT * FROM ?`, [[data]])
-        app.alpineUpdate('tableListUpdate')
+        app.updateView()
       })
   },
   parseYTid: function (url: string) {
@@ -68,13 +64,16 @@ window.app = {
   },
   view: {},
   updateView: function () {
+    app.view.table = alasql('select * from videos')
     app.view.mpv = []
+
+    console.table(alasql('select entries->length from videos'))
   }
 }
 
 if (devMode) {
-  app.fetchPlaylist('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')
-  app.fetchPlaylist('https://www.youtube.com/playlist?list=PLAskVVPnzWMBa_Jw9IbCm_uyjI8oawr-W')
+  await app.fetchPlaylist('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')
+  await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLAskVVPnzWMBa_Jw9IbCm_uyjI8oawr-W')
 }
 
 Alpine.start()

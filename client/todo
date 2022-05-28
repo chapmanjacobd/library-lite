@@ -12,7 +12,7 @@ print result list for mpv (mpv https://url \n)
 
 tree toggle to see list of videos inside of each playlist
 delete by playlist
-delete video (keep track of deleted video ids in special table)
+delete video (keep track of deleted video ids in special table) subtract from playlist count when deleting
 watch video (mark watched video id automatically)
 watched toggle
 search

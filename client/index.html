@@ -20,9 +20,9 @@
  </div>
 
  <div x-data="{
-   playlistToAdd: '',
-   submit($event) {
-     app.fetchPlaylist(this.playlistToAdd)
+   playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
+   async submit($event) {
+     await app.fetchPlaylist(this.playlistToAdd)
    }
  }">
   <label for="add_new">Add New Playlist or Channel:</label>
@@ -31,18 +31,19 @@
   <button type="button" @click="submit">Submit</button>
  </div>
 
- <div x-data="{
-  tableData: []
- }" @tableListUpdate.window="tableData = alasql('select * from videos')">
-  <template x-for="(item, index) in tableData" :key="index">
+ <div x-data>
+  <template x-for="(pl, index) in app.view.table" :key="index">
    <div>
-    <details>
-     <summary>Details</summary>
-     Something small enough to escape casual notice.
-    </details>
+    <details x-html="`<summary><a href='${pl.webpage_url}'>${pl.title}</a> by
+     <a href='${pl.channel_url}'>${pl.uploader}</a> (watched ${pl.playlist_count-pl.entries.length} of ${pl.playlist_count}; ${(pl.playlist_count-pl.entries.length)/pl.playlist_count*100.0}%)</summary>
+     <template x-for='(v, index) in pl.entries' :key='index'>
+     <div><span x-text='v.title'></span></div>
+  </template>
+  `"></details>
    </div>
   </template>
  </div>
+
 
 
 </body>
