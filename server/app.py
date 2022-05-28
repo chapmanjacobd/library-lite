@@ -62,8 +62,19 @@ ydl_opts = {
 yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
 
 
+def supported(url):  # thank you @dbr
+    ies = yt_dlp.extractor.gen_extractors()
+    for ie in ies:
+        if ie.suitable(url) and ie.IE_NAME != "generic":
+            return True  # Site has dedicated extractor
+    return False
+
+
 @func.ttl_cache(maxsize=50_000, ttl=THREE_DAYS)
 def fetch_playlist(playlist):
+    if not supported(playlist):
+        return None
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         playlist_dict = ydl.extract_info(playlist, download=False)
 
@@ -99,7 +110,6 @@ def fetch_playlist(playlist):
             )
 
         # print(playlist_dict)
-
         compressed = cctx.compress(
             json.dumps(
                 playlist_dict,

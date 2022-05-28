@@ -14,14 +14,24 @@
 <body>
  <div id="app"></div>
  <script type="module" src="/src/main.ts"></script>
- <div x-data="{ open: false }">
-  <button @click="app.fetchPlaylistInfo('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')">Fetch</button>
+
+ <div x-data>
+  <div x-html="app.loadYTlazy('ogfYd705cRs',`Play: Keynote (Google I/O '18)`)"></div>
  </div>
 
- <lite-youtube videoid="ogfYd705cRs" playlabel="Play: Keynote (Google I/O '18)"></lite-youtube>
+ <div x-data="{
+   playlistToAdd: '',
+   submit($event) {
+     app.fetchPlaylistInfo(this.playlistToAdd)
+   }
+ }">
+  <label for="add_new">Add New Playlist or Channel:</label>
+  <input type="text" name="add_new" id="add_new" x-model="playlistToAdd"
+   placeholder="https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F" @keyup.enter="submit" />
+  <button type="button" @click="submit">Submit</button>
+ </div>
 
- <script>
- </script>
+
 
 </body>
 

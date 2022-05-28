@@ -1,0 +1,27 @@
+enter playlist or channel url input
+list of playlists
+
+mobile friendly UI
+templates?
+random pastel background color?
+
+transition animations
+add button, show if empty
+
+
+print result list for mpv (mpv https://url \n)
+
+tree toggle to see list of videos inside of each playlist
+delete by playlist
+delete video (keep track of deleted video ids in special table)
+watch video (mark watched video id automatically)
+watched toggle
+search
+sort by duration, title,
+sort grouped by playlist, channel, rounded duration
+randomized sort
+random video button
+refresh all subscriptions button
+shuffle mode (auto play using random start and interval-- The Wadsworth Constant is an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information. skip to next video after configurable duration
+
+multiple databases
