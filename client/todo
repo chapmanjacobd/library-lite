@@ -1,5 +1,10 @@
 list of playlists
 
+delete all button
+alasql('delete from videos')
+refreshView
+
+
 total runtime
 
 mobile friendly UI
@@ -26,3 +31,4 @@ refresh all subscriptions button
 shuffle mode (auto play using random start and interval-- The Wadsworth Constant is an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information. skip to next video after configurable duration
 
 multiple databases
+export/import db

@@ -34,6 +34,11 @@
  </div>
 
  <div x-data>
+  <input type="checkbox" id="playlistsOnly" x-model="$store.sett.showOnlyPlaylists">
+  <label for="playlistsOnly">Show Playlists Only</label>
+  <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
+  <label for="hideWatched">Hide Watched</label>
+
   <div x-html="app.renderTable()"></div>
  </div>
 

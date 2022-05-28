@@ -18,15 +18,18 @@ if (devMode) API_domain = "http://127.0.0.1:8000/v1";
 
 alasql('CREATE localStorage DATABASE IF NOT EXISTS RuntimeDB')
 alasql('ATTACH localStorage DATABASE RuntimeDB')
+// if (!devMode)
+alasql('USE RuntimeDB')
 alasql('SET AUTOCOMMIT ON')
 alasql('CREATE TABLE IF NOT EXISTS videos');
+alasql('CREATE TABLE IF NOT EXISTS watched');
 
 window.alasql = alasql
 window.Alpine = Alpine
 window.LiteYTEmbed = LiteYTEmbed
 
 Alpine.store('table', [])
-Alpine.store('sett', { showOnlyPlaylists: false })
+Alpine.store('sett', { showOnlyPlaylists: false, hideWatched: true })
 
 window.app = {
   fetchPlaylist: async function (playlist: string) {
@@ -37,8 +40,8 @@ window.app = {
     await fetch(`${API_domain}?playlist=` + playlist)
       .then(response => response.json())
       .then(data => {
-        alasql('ATTACH localStorage DATABASE RuntimeDB')
-        alasql('SET AUTOCOMMIT ON')
+        // alasql('ATTACH localStorage DATABASE RuntimeDB')
+        // alasql('SET AUTOCOMMIT ON')
 
         alasql(`DELETE from videos where webpage_url = "${data.webpage_url}"`)
         alasql(`INSERT INTO videos SELECT * FROM ?`, [[data]])
@@ -98,11 +101,11 @@ window.app = {
        </tr>
       </thead>
 
-      <template x-for="(pl, index) in $store.table" :key="index">
+      <template x-for="(pl, pindex) in $store.table" :key="pindex">
        <tbody>
 
         <tr>
-         <td colspan="1"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
+         <td colspan="2"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
          <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
          <td colspan="2"><p x-text="
              (pl.playlist_count - pl.entries.length) + ' of '+ pl.playlist_count + ' watched ('
@@ -112,16 +115,25 @@ window.app = {
         </tr>
 
         <template x-if="!$store.sett.showOnlyPlaylists">
-          <template x-for="(v, index) in pl.entries" :key="index">
+          <template x-for="(v, vindex) in pl.entries" :key="vindex">
             <tr>
-              <td><span x-text="v.title"></span></td>
-              <td><span x-text="v.uploader"></span></td>
-              <td><a :href="v.url" target="_blank">🔗</a></td>
               <td>
                 <template x-if="v.ie_key == 'Youtube'">
                   <span class="material-symbols-rounded">play_circle</span>
                 </template>
               </td>
+              <td><span x-text="v.title"></span></td>
+              <td><span x-text="v.uploader"></span></td>
+              <td>
+                <input type="checkbox" :id="pindex+'watched'+vindex"
+                  :checked="alasql('select * from watched where ie_key='+ v.ie_key +' and id=' +v.id)?.length > 0"
+                  @click="$el.checked
+                    ? alasql('INSERT INTO watched SELECT * FROM ?',[[{ie_key: v.ie_key, id: v.id}]])
+                    : alasql('DELETE FROM watched where ie_key='+ v.ie_key +' and id=' +v.id)
+                ">
+                <label :for="pindex+'watched'+vindex">Watched?</label>
+              </td>
+              <td><a :href="v.url" target="_blank">🔗</a></td>
             </tr>
           </template>
         </template>
@@ -150,6 +162,7 @@ if (devMode) {
 }
 
 Alpine.start()
+app.updateView()
 
 
 // if (!devMode && Math.random() < 0.05) fullstory();
