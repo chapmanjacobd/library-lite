@@ -85,6 +85,16 @@ window.app = {
 
     console.table(alasql('select entries->length from videos'))
   },
+  isVideoWatched: function (v: { ie_key: string; id: string; }) {
+    const sql = `select * from watched where ie_key='${v.ie_key}' and id='${v.id}'`
+    return alasql(sql)?.length > 0
+  },
+  markVideoWatched: function (v: { ie_key: string; id: string; }) {
+    return alasql('INSERT INTO watched SELECT * FROM ?', [[{ ie_key: v.ie_key, id: v.id }]])
+  },
+  markVideoUnwatched: function (v: { ie_key: string; id: string; }) {
+    return alasql(`DELETE FROM watched where ie_key='${v.ie_key}' and id='${v.id}'`)
+  },
   renderTable: function () {
     const tableHead = `<thead>
       <tr>
@@ -119,11 +129,8 @@ window.app = {
       <td><span x-text="v.uploader"></span></td>
       <td>
         <input type="checkbox" :id="pindex+'watched'+vindex"
-          :checked="alasql('select * from watched where ie_key='+ v.ie_key +' and id=' +v.id)?.length > 0"
-          @click="$el.checked
-            ? alasql('INSERT INTO watched SELECT * FROM ?',[[{ie_key: v.ie_key, id: v.id}]])
-            : alasql('DELETE FROM watched where ie_key='+ v.ie_key +' and id=' +v.id)
-        ">
+          :checked="app.isVideoWatched(v)"
+          @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
         <label :for="pindex+'watched'+vindex">Watched?</label>
       </td>
       <td><a :href="v.url" target="_blank">🔗</a></td>
