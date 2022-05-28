@@ -1,5 +1,5 @@
-import { Alpine as AlpineType } from 'alpinejs'
 import { alasql as alasqlType } from 'alasql'
+import { Alpine as AlpineType } from 'alpinejs'
 import { LiteYTEmbed } from 'lite-youtube-embed'
 
 declare global {

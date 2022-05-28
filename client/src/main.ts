@@ -1,11 +1,10 @@
 
-import './style.css'
-import '../node_modules/lite-youtube-embed/src/lite-yt-embed.css'
-
-import Alpine from 'alpinejs'
-import alasql from 'alasql'
-import LiteYTEmbed from 'lite-youtube-embed'
-import { fullstory } from './tracking'
+import alasql from 'alasql';
+import Alpine from 'alpinejs';
+import LiteYTEmbed from 'lite-youtube-embed';
+import 'lite-youtube-embed/src/lite-yt-embed.css';
+import 'material-symbols/rounded.css';
+import './style.css';
 
 const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
 
@@ -17,8 +16,6 @@ if (devMode) {
 let API_domain = "https://unli.xyz/api/yt/v1";
 if (devMode) API_domain = "http://127.0.0.1:8000/v1";
 
-
-
 alasql('CREATE localStorage DATABASE IF NOT EXISTS RuntimeDB')
 alasql('ATTACH localStorage DATABASE RuntimeDB')
 alasql('SET AUTOCOMMIT ON')
@@ -27,6 +24,9 @@ alasql('CREATE TABLE IF NOT EXISTS videos');
 window.alasql = alasql
 window.Alpine = Alpine
 window.LiteYTEmbed = LiteYTEmbed
+
+Alpine.store('table', [])
+Alpine.store('sett', { showOnlyPlaylists: false })
 
 window.app = {
   fetchPlaylist: async function (playlist: string) {
@@ -62,12 +62,85 @@ window.app = {
     if (!url) return false;
     return url != "" && !app.parseYTid(url).includes("search");
   },
+  secondsToFriendlyTime: function (seconds: number) {
+    seconds = Number(seconds);
+    var d = Math.floor(seconds / (3600 * 24));
+    var h = Math.floor(seconds % (3600 * 24) / 3600);
+    var m = Math.floor(seconds % 3600 / 60);
+
+    let display = [];
+    if (d > 0) display.push(d + ' d')
+    if (h > 0) display.push(h + ' h')
+    if (m > 0) display.push(m + ' m')
+
+    return display.join(', ');
+  },
   view: {},
   updateView: function () {
-    app.view.table = alasql('select * from videos')
+    Alpine.store('table', alasql('select * from videos')) // thanks @stackoverflow:Dauros
     app.view.mpv = []
 
     console.table(alasql('select entries->length from videos'))
+  },
+  renderTable: function () {
+    return `<table>
+
+      <thead>
+       <tr>
+        <td colspan="100">
+         <template x-if="$store.table.length > 0">
+          <div>Data</div>
+         </template>
+         <template x-if="$store.table.length == 0">
+          <div>Add a playlist</div>
+         </template>
+        </td>
+       </tr>
+      </thead>
+
+      <template x-for="(pl, index) in $store.table" :key="index">
+       <tbody>
+
+        <tr>
+         <td colspan="1"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
+         <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
+         <td colspan="2"><p x-text="
+             (pl.playlist_count - pl.entries.length) + ' of '+ pl.playlist_count + ' watched ('
+           + (pl.playlist_count - pl.entries.length) / pl.playlist_count * 100.0 + '%); '
+           + app.secondsToFriendlyTime(pl.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
+         "></p></td>
+        </tr>
+
+        <template x-if="!$store.sett.showOnlyPlaylists">
+          <template x-for="(v, index) in pl.entries" :key="index">
+            <tr>
+              <td><span x-text="v.title"></span></td>
+              <td><span x-text="v.uploader"></span></td>
+              <td><a :href="v.url" target="_blank">🔗</a></td>
+              <td>
+                <template x-if="v.ie_key == 'Youtube'">
+                  <span class="material-symbols-rounded">play_circle</span>
+                </template>
+              </td>
+            </tr>
+          </template>
+        </template>
+
+       </tbody>
+      </template>
+
+      <template x-if="$store.table > 0">
+       <tfoot>
+        <tr>
+         <td colspan="100">
+          <div style="display: flex; justify-content: space-between; margin: 0 .5rem;"></div>
+         </td>
+        </tr>
+
+       </tfoot>
+      </template>
+
+     </table>`
   }
 }
 
@@ -79,4 +152,4 @@ if (devMode) {
 Alpine.start()
 
 
-// if (!devMode) fullstory();
+// if (!devMode && Math.random() < 0.05) fullstory();

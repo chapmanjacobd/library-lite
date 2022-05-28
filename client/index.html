@@ -8,6 +8,8 @@
  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
  <link rel="manifest" href="/site.webmanifest">
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+ <link rel="stylesheet" type="text/css" href="https://unli.xyz/awsm_theme_pearl-lusta.css" media="all">
+
  <title>Ejectube</title>
 </head>
 
@@ -32,19 +34,8 @@
  </div>
 
  <div x-data>
-  <template x-for="(pl, index) in app.view.table" :key="index">
-   <div>
-    <details x-html="`<summary><a href='${pl.webpage_url}'>${pl.title}</a> by
-     <a href='${pl.channel_url}'>${pl.uploader}</a> (watched ${pl.playlist_count-pl.entries.length} of ${pl.playlist_count}; ${(pl.playlist_count-pl.entries.length)/pl.playlist_count*100.0}%)</summary>
-     <template x-for='(v, index) in pl.entries' :key='index'>
-     <div><span x-text='v.title'></span></div>
-  </template>
-  `"></details>
-   </div>
-  </template>
+  <div x-html="app.renderTable()"></div>
  </div>
-
-
 
 </body>
 
