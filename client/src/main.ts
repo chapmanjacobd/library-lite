@@ -86,71 +86,78 @@ window.app = {
     console.table(alasql('select entries->length from videos'))
   },
   renderTable: function () {
-    return `<table>
+    const tableHead = `<thead>
+      <tr>
+      <td colspan="100">
+        <template x-if="$store.table.length > 0">
+        <div>Data</div>
+        </template>
+        <template x-if="$store.table.length == 0">
+        <div>Add a playlist</div>
+        </template>
+      </td>
+      </tr>
+    </thead>`
 
-      <thead>
-       <tr>
+    const playlistRow = `<tr>
+      <td colspan="2"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
+      <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
+      <td colspan="2"><p x-text="
+          (pl.playlist_count - pl.entries.length) + ' of '+ pl.playlist_count + ' watched ('
+        + (pl.playlist_count - pl.entries.length) / pl.playlist_count * 100.0 + '%); '
+        + app.secondsToFriendlyTime(pl.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
+      "></p></td>
+    </tr>`
+
+    const videoRow = `<tr>
+      <td>
+        <template x-if="v.ie_key == 'Youtube'">
+          <span class="material-symbols-rounded">play_circle</span>
+        </template>
+      </td>
+      <td><span x-text="v.title"></span></td>
+      <td><span x-text="v.uploader"></span></td>
+      <td>
+        <input type="checkbox" :id="pindex+'watched'+vindex"
+          :checked="alasql('select * from watched where ie_key='+ v.ie_key +' and id=' +v.id)?.length > 0"
+          @click="$el.checked
+            ? alasql('INSERT INTO watched SELECT * FROM ?',[[{ie_key: v.ie_key, id: v.id}]])
+            : alasql('DELETE FROM watched where ie_key='+ v.ie_key +' and id=' +v.id)
+        ">
+        <label :for="pindex+'watched'+vindex">Watched?</label>
+      </td>
+      <td><a :href="v.url" target="_blank">🔗</a></td>
+    </tr>`
+
+    const tableFoot = `<template x-if="$store.table > 0">
+      <tfoot>
+      <tr>
         <td colspan="100">
-         <template x-if="$store.table.length > 0">
-          <div>Data</div>
-         </template>
-         <template x-if="$store.table.length == 0">
-          <div>Add a playlist</div>
-         </template>
+        <div style="display: flex; justify-content: space-between; margin: 0 .5rem;"></div>
         </td>
-       </tr>
-      </thead>
+      </tr>
+
+      </tfoot>
+    </template>`
+
+    return `<table>
+      ${tableHead}
 
       <template x-for="(pl, pindex) in $store.table" :key="pindex">
        <tbody>
 
-        <tr>
-         <td colspan="2"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
-         <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
-         <td colspan="2"><p x-text="
-             (pl.playlist_count - pl.entries.length) + ' of '+ pl.playlist_count + ' watched ('
-           + (pl.playlist_count - pl.entries.length) / pl.playlist_count * 100.0 + '%); '
-           + app.secondsToFriendlyTime(pl.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
-         "></p></td>
-        </tr>
+        ${playlistRow}
 
         <template x-if="!$store.sett.showOnlyPlaylists">
           <template x-for="(v, vindex) in pl.entries" :key="vindex">
-            <tr>
-              <td>
-                <template x-if="v.ie_key == 'Youtube'">
-                  <span class="material-symbols-rounded">play_circle</span>
-                </template>
-              </td>
-              <td><span x-text="v.title"></span></td>
-              <td><span x-text="v.uploader"></span></td>
-              <td>
-                <input type="checkbox" :id="pindex+'watched'+vindex"
-                  :checked="alasql('select * from watched where ie_key='+ v.ie_key +' and id=' +v.id)?.length > 0"
-                  @click="$el.checked
-                    ? alasql('INSERT INTO watched SELECT * FROM ?',[[{ie_key: v.ie_key, id: v.id}]])
-                    : alasql('DELETE FROM watched where ie_key='+ v.ie_key +' and id=' +v.id)
-                ">
-                <label :for="pindex+'watched'+vindex">Watched?</label>
-              </td>
-              <td><a :href="v.url" target="_blank">🔗</a></td>
-            </tr>
+            ${videoRow}
           </template>
         </template>
 
        </tbody>
       </template>
 
-      <template x-if="$store.table > 0">
-       <tfoot>
-        <tr>
-         <td colspan="100">
-          <div style="display: flex; justify-content: space-between; margin: 0 .5rem;"></div>
-         </td>
-        </tr>
-
-       </tfoot>
-      </template>
+      ${tableFoot}
 
      </table>`
   }
