@@ -22,7 +22,7 @@
  <div x-data="{
    playlistToAdd: '',
    submit($event) {
-     app.fetchPlaylistInfo(this.playlistToAdd)
+     app.fetchPlaylist(this.playlistToAdd)
    }
  }">
   <label for="add_new">Add New Playlist or Channel:</label>
@@ -31,6 +31,18 @@
   <button type="button" @click="submit">Submit</button>
  </div>
 
+ <div x-data="{
+  tableData: []
+ }" @tableListUpdate.window="tableData = alasql('select * from videos')">
+  <template x-for="(item, index) in tableData" :key="index">
+   <div>
+    <details>
+     <summary>Details</summary>
+     Something small enough to escape casual notice.
+    </details>
+   </div>
+  </template>
+ </div>
 
 
 </body>
