@@ -3,17 +3,15 @@ import './style.css'
 
 import Alpine from 'alpinejs'
 import alasql from 'alasql'
-import { obj2schema } from './utils'
+import LiteYTEmbed from 'lite-youtube-embed'
 
 alasql.options.errorlog = true
+alasql('CREATE localStorage DATABASE IF NOT EXISTS RuntimeDB')
 
 window.alasql = alasql
 window.Alpine = Alpine
+window.LiteYTEmbed = LiteYTEmbed
 Alpine.start()
-
-
-
-alasql('CREATE localStorage DATABASE IF NOT EXISTS Videos')
 
 
 window.app = {
@@ -22,7 +20,7 @@ window.app = {
     fetch("http://127.0.0.1:8000/v1?playlist=" + playlist)
       .then(response => response.json())
       .then(data => {
-        alasql('ATTACH localStorage DATABASE Videos AS RuntimeDB')
+        alasql('ATTACH localStorage DATABASE RuntimeDB')
         alasql('SET AUTOCOMMIT ON')
 
         alasql(`DELETE from videos where webpage_url = "${data.webpage_url}"`)
