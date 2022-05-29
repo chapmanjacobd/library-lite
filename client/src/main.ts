@@ -20,7 +20,7 @@ if (devMode) API_domain = "http://127.0.0.1:8000/v1";
 alasql('CREATE localStorage DATABASE IF NOT EXISTS RuntimeDB')
 alasql('ATTACH localStorage DATABASE RuntimeDB')
 // if (!devMode)
-// alasql('USE RuntimeDB')
+alasql('USE RuntimeDB')
 alasql('SET AUTOCOMMIT ON')
 alasql('CREATE TABLE IF NOT EXISTS playlists');
 alasql('CREATE TABLE IF NOT EXISTS entries');
@@ -93,9 +93,12 @@ window.app = {
     let constraints: string[] = []
     // if (Alpine.store('sett').hideWatched) constraints.push('entries->')
     const where = constraints.length > 0 ? 'where' + constraints.join(' and ') : ''
-    const tableData = alasql('select * from entries' + where) // + ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
+    const playlists = alasql('select * from playlists' + where)
+    Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
 
-    Alpine.store('table', tableData) // thanks @stackoverflow:Dauros
+    const entries = alasql('select * from entries' + where) // + ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
+    Alpine.store('entries', entries)
+
     Alpine.store('videoqty', alasql('select value count(distinct id) from entries' + where))
 
   },
@@ -108,12 +111,12 @@ window.app = {
   markVideoUnwatched: function (v: { ie_key: string; id: string; }) {
     return alasql('DELETE FROM watched where ie_key=? and id=?', [v.ie_key, v.id])
   },
-  renderTable: function () {
+  renderPlaylists: function () {
     const tableHead = html`<thead>
   <tr>
     <td colspan="100">
       <template x-if="$store.playlists.length > 0">
-        <div>Data</div>
+        <div><span>Playlists</span><span x-text="' ('+ $store.playlists.length +')'"></span></div>
       </template>
       <template x-if="$store.playlists.length == 0">
         <div>Add a playlist or channel URL to get started</div>
@@ -132,10 +135,50 @@ window.app = {
     <p x-text="
           (pl.playlist_count - $store.entries.length) + ' of '+ pl.playlist_count + ' watched ('
         + (pl.playlist_count - $store.entries.length) / pl.playlist_count * 100.0 + '%); '
-        + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
+        + app.secondsToFriendlyTime(pl.duration) + ' remaining'
       "></p>
   </td>
 </tr>`
+
+
+    const tableFoot = html`<template x-if="$store.playlists > 0">
+  <tfoot>
+    <tr>
+      <td colspan="100">
+        <div style="display: flex; justify-content: space-between; margin: 0 .5rem;"></div>
+      </td>
+    </tr>
+
+  </tfoot>
+</template>`
+
+    return `<table>
+  ${tableHead}
+  <tbody>
+    <template x-for="(pl, pindex) in $store.playlists" :key="pindex">
+      ${playlistRow}
+    </template>
+  </tbody>
+  ${tableFoot}
+</table>`
+  },
+  renderEntrees: function () {
+    const tableHead = html`<thead>
+  <tr>
+    <td colspan="100">
+      <template x-if="$store.entries.length > 0">
+        <div style="display:flex;justify-content: space-between;">
+          <span x-text="'Videos ('+ $store.entries.length +')'"></span>
+          <span
+            x-text="'Total runtime: '+ app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0))"></span>
+        </div>
+      </template>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+</thead>`
 
     const videoRow = html`<tr>
   <td>
@@ -147,9 +190,9 @@ window.app = {
   <td><span x-text="v.uploader"></span></td>
   <td>
     <span x-text="app.secondsToFriendlyTime(v.duration)"></span>
-    <input type="checkbox" :id="pindex+'watched'+vindex" :checked="app.isVideoWatched(v)"
+    <input type="checkbox" :checked="app.isVideoWatched(v)"
       @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
-    <label :for="pindex+'watched'+vindex">Watched?</label>
+    <label>Watched?</label>
   </td>
   <td><a :href="v.url" target="_blank">🔗</a></td>
 </tr>`
@@ -167,23 +210,14 @@ window.app = {
 
     return `<table>
   ${tableHead}
-
   <tbody>
-
-    <template x-for="(pl, pindex) in $store.playlists" :key="pindex">
-      ${playlistRow}
-    </template>
-
     <template x-if="!$store.sett.showOnlyPlaylists">
       <template x-for="(v, vindex) in $store.entries" :key="vindex">
         ${videoRow}
       </template>
     </template>
-
   </tbody>
-
   ${tableFoot}
-
 </table>`
   }
 }

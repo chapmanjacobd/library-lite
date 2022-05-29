@@ -49,7 +49,11 @@
  </div>
 
  <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''" x-data>
-  <div x-html="app.renderTable()"></div>
+  <div x-html="app.renderPlaylists()"></div>
+ </div>
+
+ <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''" x-data>
+  <div x-html="app.renderEntrees()"></div>
  </div>
 
 </body>
