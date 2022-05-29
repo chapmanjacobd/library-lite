@@ -5,6 +5,7 @@ import LiteYTEmbed from 'lite-youtube-embed';
 import 'lite-youtube-embed/src/lite-yt-embed.css';
 import 'material-symbols/rounded.css';
 import './style.css';
+import { Playlist } from './types';
 import { html } from './utils';
 
 const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
@@ -19,19 +20,19 @@ if (devMode) API_domain = "http://127.0.0.1:8000/v1";
 alasql('CREATE localStorage DATABASE IF NOT EXISTS RuntimeDB')
 alasql('ATTACH localStorage DATABASE RuntimeDB')
 // if (!devMode)
-alasql('USE RuntimeDB')
+// alasql('USE RuntimeDB')
 alasql('SET AUTOCOMMIT ON')
-alasql('CREATE TABLE IF NOT EXISTS videos');
+alasql('CREATE TABLE IF NOT EXISTS playlists');
+alasql('CREATE TABLE IF NOT EXISTS entries');
 alasql('CREATE TABLE IF NOT EXISTS watched');
 
 window.alasql = alasql
 window.Alpine = Alpine
 window.LiteYTEmbed = LiteYTEmbed
 
-Alpine.store('table', [])
-Alpine.store('sett', { showOnlyPlaylists: false, hideWatched: true })
-
-
+Alpine.store('playlists', [])
+Alpine.store('entries', [])
+Alpine.store('sett', { showOnlyPlaylists: false, hideWatched: true, maxEntriesVisiblePerPlaylist: 10_000 })
 
 window.app = {
   fetchPlaylist: async function (playlist: string) {
@@ -41,12 +42,19 @@ window.app = {
 
     await fetch(`${API_domain}?playlist=` + playlist)
       .then(response => response.json())
-      .then(data => {
+      .then((data: Playlist) => {
         // alasql('ATTACH localStorage DATABASE RuntimeDB')
         // alasql('SET AUTOCOMMIT ON')
 
-        alasql(`DELETE from videos where webpage_url = "${data.webpage_url}"`)
-        alasql(`INSERT INTO videos SELECT * FROM ?`, [[data]])
+        data.entries = data.entries!.map((x) => ({
+          ...x, playlist_url: playlist
+        }))
+        alasql('DELETE from entries where playlist_url = ?', playlist)
+        alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
+
+        delete data.entries
+        alasql('DELETE from playlists where webpage_url = ?', data.webpage_url)
+        alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
         app.updateView()
       })
   },
@@ -82,14 +90,13 @@ window.app = {
   },
   view: {},
   updateView: function () {
-    let constraints = []
+    let constraints: string[] = []
     // if (Alpine.store('sett').hideWatched) constraints.push('entries->')
     const where = constraints.length > 0 ? 'where' + constraints.join(' and ') : ''
-
-    const tableData = alasql('select * from videos' + where)
+    const tableData = alasql('select * from entries' + where) // + ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
 
     Alpine.store('table', tableData) // thanks @stackoverflow:Dauros
-    Alpine.store('videoqty', alasql('select value sum(entries->length) from videos' + where))
+    Alpine.store('videoqty', alasql('select value count(distinct id) from entries' + where))
 
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
@@ -105,11 +112,11 @@ window.app = {
     const tableHead = html`<thead>
   <tr>
     <td colspan="100">
-      <template x-if="$store.table.length > 0">
+      <template x-if="$store.playlists.length > 0">
         <div>Data</div>
       </template>
-      <template x-if="$store.table.length == 0">
-        <div>Add a playlist</div>
+      <template x-if="$store.playlists.length == 0">
+        <div>Add a playlist or channel URL to get started</div>
       </template>
     </td>
   </tr>
@@ -123,9 +130,9 @@ window.app = {
   <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
   <td colspan="2">
     <p x-text="
-          (pl.playlist_count - pl.entries.length) + ' of '+ pl.playlist_count + ' watched ('
-        + (pl.playlist_count - pl.entries.length) / pl.playlist_count * 100.0 + '%); '
-        + app.secondsToFriendlyTime(pl.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
+          (pl.playlist_count - $store.entries.length) + ' of '+ pl.playlist_count + ' watched ('
+        + (pl.playlist_count - $store.entries.length) / pl.playlist_count * 100.0 + '%); '
+        + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
       "></p>
   </td>
 </tr>`
@@ -147,7 +154,7 @@ window.app = {
   <td><a :href="v.url" target="_blank">🔗</a></td>
 </tr>`
 
-    const tableFoot = html`<template x-if="$store.table > 0">
+    const tableFoot = html`<template x-if="$store.playlists > 0">
   <tfoot>
     <tr>
       <td colspan="100">
@@ -161,19 +168,19 @@ window.app = {
     return `<table>
   ${tableHead}
 
-  <template x-for="(pl, pindex) in $store.table" :key="pindex">
-    <tbody>
+  <tbody>
 
+    <template x-for="(pl, pindex) in $store.playlists" :key="pindex">
       ${playlistRow}
+    </template>
 
-      <template x-if="!$store.sett.showOnlyPlaylists">
-        <template x-for="(v, vindex) in pl.entries" :key="vindex">
-          ${videoRow}
-        </template>
+    <template x-if="!$store.sett.showOnlyPlaylists">
+      <template x-for="(v, vindex) in $store.entries" :key="vindex">
+        ${videoRow}
       </template>
+    </template>
 
-    </tbody>
-  </template>
+  </tbody>
 
   ${tableFoot}
 
