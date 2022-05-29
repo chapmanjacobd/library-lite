@@ -93,14 +93,13 @@ window.app = {
 
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
-    const sql = `select * from watched where ie_key='${v.ie_key}' and id='${v.id}'`
-    return alasql(sql)?.length > 0
+    return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
   },
   markVideoWatched: function (v: { ie_key: string; id: string; }) {
     return alasql('INSERT INTO watched SELECT * FROM ?', [[{ ie_key: v.ie_key, id: v.id }]])
   },
   markVideoUnwatched: function (v: { ie_key: string; id: string; }) {
-    return alasql(`DELETE FROM watched where ie_key='${v.ie_key}' and id='${v.id}'`)
+    return alasql('DELETE FROM watched where ie_key=? and id=?', [v.ie_key, v.id])
   },
   renderTable: function () {
     const tableHead = html`<thead>
@@ -140,6 +139,7 @@ window.app = {
   <td><span x-text="v.title"></span></td>
   <td><span x-text="v.uploader"></span></td>
   <td>
+    <span x-text="app.secondsToFriendlyTime(v.duration)"></span>
     <input type="checkbox" :id="pindex+'watched'+vindex" :checked="app.isVideoWatched(v)"
       @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
     <label :for="pindex+'watched'+vindex">Watched?</label>

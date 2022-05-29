@@ -20,3 +20,9 @@
   display: flex;
   justify-content: space-evenly;
 }
+
+tr td {
+  text-overflow: ellipsis;
+  max-width: 20em;
+  overflow: hidden;
+}
