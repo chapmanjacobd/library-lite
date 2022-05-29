@@ -5,12 +5,12 @@ import LiteYTEmbed from 'lite-youtube-embed';
 import 'lite-youtube-embed/src/lite-yt-embed.css';
 import 'material-symbols/rounded.css';
 import './style.css';
+import { html } from './utils';
 
 const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
 
 if (devMode) {
   import.meta.hot
-  alasql.options.errorlog = true
 }
 
 let API_domain = "https://unli.xyz/api/yt/v1";
@@ -30,6 +30,8 @@ window.LiteYTEmbed = LiteYTEmbed
 
 Alpine.store('table', [])
 Alpine.store('sett', { showOnlyPlaylists: false, hideWatched: true })
+
+
 
 window.app = {
   fetchPlaylist: async function (playlist: string) {
@@ -80,10 +82,15 @@ window.app = {
   },
   view: {},
   updateView: function () {
-    Alpine.store('table', alasql('select * from videos')) // thanks @stackoverflow:Dauros
-    app.view.mpv = []
+    let constraints = []
+    // if (Alpine.store('sett').hideWatched) constraints.push('entries->')
+    const where = constraints.length > 0 ? 'where' + constraints.join(' and ') : ''
 
-    console.table(alasql('select entries->length from videos'))
+    const tableData = alasql('select * from videos' + where)
+
+    Alpine.store('table', tableData) // thanks @stackoverflow:Dauros
+    Alpine.store('videoqty', alasql('select value sum(entries->length) from videos' + where))
+
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
     const sql = `select * from watched where ie_key='${v.ie_key}' and id='${v.id}'`
@@ -96,77 +103,81 @@ window.app = {
     return alasql(`DELETE FROM watched where ie_key='${v.ie_key}' and id='${v.id}'`)
   },
   renderTable: function () {
-    const tableHead = `<thead>
-      <tr>
-      <td colspan="100">
-        <template x-if="$store.table.length > 0">
+    const tableHead = html`<thead>
+  <tr>
+    <td colspan="100">
+      <template x-if="$store.table.length > 0">
         <div>Data</div>
-        </template>
-        <template x-if="$store.table.length == 0">
+      </template>
+      <template x-if="$store.table.length == 0">
         <div>Add a playlist</div>
-        </template>
-      </td>
-      </tr>
-    </thead>`
+      </template>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+  </tr>
+</thead>`
 
-    const playlistRow = `<tr>
-      <td colspan="2"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
-      <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
-      <td colspan="2"><p x-text="
+    const playlistRow = html`<tr>
+  <td colspan="2"><a :href="pl.webpage_url" x-text="pl.title"></a></td>
+  <td colspan="1"><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
+  <td colspan="2">
+    <p x-text="
           (pl.playlist_count - pl.entries.length) + ' of '+ pl.playlist_count + ' watched ('
         + (pl.playlist_count - pl.entries.length) / pl.playlist_count * 100.0 + '%); '
         + app.secondsToFriendlyTime(pl.entries.reduce((p,x) => p + x.duration, 0)) + ' remaining'
-      "></p></td>
-    </tr>`
+      "></p>
+  </td>
+</tr>`
 
-    const videoRow = `<tr>
-      <td>
-        <template x-if="v.ie_key == 'Youtube'">
-          <span class="material-symbols-rounded">play_circle</span>
-        </template>
-      </td>
-      <td><span x-text="v.title"></span></td>
-      <td><span x-text="v.uploader"></span></td>
-      <td>
-        <input type="checkbox" :id="pindex+'watched'+vindex"
-          :checked="app.isVideoWatched(v)"
-          @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
-        <label :for="pindex+'watched'+vindex">Watched?</label>
-      </td>
-      <td><a :href="v.url" target="_blank">🔗</a></td>
-    </tr>`
+    const videoRow = html`<tr>
+  <td>
+    <template x-if="v.ie_key == 'Youtube'">
+      <span class="material-symbols-rounded">play_circle</span>
+    </template>
+  </td>
+  <td><span x-text="v.title"></span></td>
+  <td><span x-text="v.uploader"></span></td>
+  <td>
+    <input type="checkbox" :id="pindex+'watched'+vindex" :checked="app.isVideoWatched(v)"
+      @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
+    <label :for="pindex+'watched'+vindex">Watched?</label>
+  </td>
+  <td><a :href="v.url" target="_blank">🔗</a></td>
+</tr>`
 
-    const tableFoot = `<template x-if="$store.table > 0">
-      <tfoot>
-      <tr>
-        <td colspan="100">
+    const tableFoot = html`<template x-if="$store.table > 0">
+  <tfoot>
+    <tr>
+      <td colspan="100">
         <div style="display: flex; justify-content: space-between; margin: 0 .5rem;"></div>
-        </td>
-      </tr>
+      </td>
+    </tr>
 
-      </tfoot>
-    </template>`
+  </tfoot>
+</template>`
 
     return `<table>
-      ${tableHead}
+  ${tableHead}
 
-      <template x-for="(pl, pindex) in $store.table" :key="pindex">
-       <tbody>
+  <template x-for="(pl, pindex) in $store.table" :key="pindex">
+    <tbody>
 
-        ${playlistRow}
+      ${playlistRow}
 
-        <template x-if="!$store.sett.showOnlyPlaylists">
-          <template x-for="(v, vindex) in pl.entries" :key="vindex">
-            ${videoRow}
-          </template>
+      <template x-if="!$store.sett.showOnlyPlaylists">
+        <template x-for="(v, vindex) in pl.entries" :key="vindex">
+          ${videoRow}
         </template>
-
-       </tbody>
       </template>
 
-      ${tableFoot}
+    </tbody>
+  </template>
 
-     </table>`
+  ${tableFoot}
+
+</table>`
   }
 }
 

@@ -6,3 +6,17 @@
   color: #2c3e50;
   margin-top: 60px;
 }
+
+#addNew {
+  display: flex;
+  align-items: center;
+}
+
+#addNew>label {
+  font-size: 0.9rem;
+}
+
+#dials {
+  display: flex;
+  justify-content: space-evenly;
+}

@@ -39,7 +39,6 @@ def route_fetch_playlist(request: Request):
             return PlainTextResponse("URL has no netloc", status_code=422)
 
     playlist = quote_plus(playlist, safe=":/?=")
-    print(playlist)
     data = fetch_playlist(playlist)
     if not data:
         return PlainTextResponse("Playlist lackof valid", status_code=422)

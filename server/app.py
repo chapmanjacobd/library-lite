@@ -2,8 +2,9 @@ import json
 
 import yt_dlp
 from cachetools import func
+from zstandard import ZstdCompressor
 
-from utils import THREE_DAYS, cctx, safe_del
+from utils import THREE_DAYS, safe_del
 
 ydl_opts = {
     "skip_download": True,
@@ -110,6 +111,7 @@ def fetch_playlist(playlist):
             )
 
         # print(playlist_dict)
+        cctx = ZstdCompressor(8)
         compressed = cctx.compress(
             json.dumps(
                 playlist_dict,

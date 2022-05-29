@@ -1,0 +1,36 @@
+alasql('SELECT COLUMN * FROM ? WHERE [0] LIKE "%uery%"', [keys])
+alasql('SELECT MATRIX * FROM ? WHERE [0] LIKE "%uery%"', [keys])
+alasql('SELECT ROW * FROM ? WHERE [0] LIKE "%uery%"', [keys])
+alasql('SELECT RECORDSET * FROM ? WHERE [0] LIKE "%uery%"', [keys])
+alasql('SELECT MATRIX * FROM ? WHERE [0] LIKE "%uery%"', [keys])
+
+
+// ideas
+alasql(`SELECT EXISTS(SELECT * FROM ? WHERE arrlen(leechers) < 3 AND socketId in @(?)) AS hasCap`, [nodeTracker, broadcasterIds])
+
+alasql('UPDATE tableName SET keyToUpdate = ? WHERE keyIdentifier = ?', [valueThatKeyShouldBeUpdatedTo, valueOfKeyIdentifier])
+
+alasql('DELETE FROM tableName WHERE keyToMatch = ?', [“valueOfKeyToMatch”])
+
+// custom function
+alasql.fn.arrlen = function (arr) { return arr.length }
+alasql('VALUE OF SELECT socketId FROM nodeTracker WHERE arrlen(leechers) < 3 and socketId IN @(?)', [broadcasterIds])
+//
+
+alasql('SELECT * FROM City WHERE EXIST(SELECT * FROM Capital WHERE City.Name = Capital.Name)');
+
+alasql('SEARCH /entries/ from videos')
+
+alasql('select columns entries from videos').flatMap(x=>x).filter(x=>!alasql('select column id from watched').includes(x.id))
+
+// group by return nested object https://github.com/AlaSQL/alasql/wiki/How-to-add-own-keys-for-grouped-output
+alasql('SELECT color, ARRAY(_) AS users FROM ? GROUP BY color',[data]);
+
+// {"product 1":10, "product 2": 23}
+alasql('SELECT INDEX name, COUNT(*) AS cnt FROM ? GROUP BY name'. [data.business[0].order_contents]);
+
+
+alasql('BEGIN TRANSACTION');
+alasql('COMMIT');
+alasql('ROLLBACK');
+

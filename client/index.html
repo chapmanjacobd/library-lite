@@ -21,24 +21,34 @@
   <div x-html="app.loadYTlazy('ogfYd705cRs',`Play: Keynote (Google I/O '18)`)"></div>
  </div>
 
- <div x-data="{
+ <div id="addNew" x-data="{
    playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
    async submit($event) {
      await app.fetchPlaylist(this.playlistToAdd)
    }
  }">
-  <label for="add_new">Add New Playlist or Channel:</label>
-  <input type="text" name="add_new" id="add_new" x-model="playlistToAdd"
+  <label for="addNewInput">Add New Playlist or Channel:</label>
+  <input type="text" name="addNewInput" id="addNewInput" x-model="playlistToAdd"
    placeholder="https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F" @keyup.enter="submit" />
   <button type="button" @click="submit">Submit</button>
  </div>
 
- <div x-data>
-  <input type="checkbox" id="playlistsOnly" x-model="$store.sett.showOnlyPlaylists">
-  <label for="playlistsOnly">Show Playlists Only</label>
-  <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
-  <label for="hideWatched">Hide Watched</label>
+ <div id="dials" x-data>
+  <div>
+   <input type="checkbox" id="playlistsOnly" x-model="$store.sett.showOnlyPlaylists">
+   <label for="playlistsOnly">Show Playlists Only</label>
+  </div>
+  <div>
+   <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
+   <label for="hideWatched">Hide Watched</label>
+  </div>
+  <div>
+   <input type="checkbox" id="compact" x-model="$store.sett.compact">
+   <label for="compact">Compact UI</label>
+  </div>
+ </div>
 
+ <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''" x-data>
   <div x-html="app.renderTable()"></div>
  </div>
 

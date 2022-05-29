@@ -1,10 +1,8 @@
 import re
 
 from starlette.responses import JSONResponse
-from zstandard import ZstdCompressor
 
 THREE_DAYS = 60 * 60 * 24 * 3
-cctx = ZstdCompressor(8)
 REGEXP_HTTP = re.compile(r"(?:http|https)://")
 
 
