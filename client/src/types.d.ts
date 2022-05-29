@@ -25,6 +25,8 @@ export interface Entree {
 }
 
 export interface Playlist {
+    playlist_url: string
+    duration: number
     entries?: Entree[],
     uploader: "Mejoo and Cats",
     uploader_id: "UCCb6W2FU1L7j9mw14YK-9yg",

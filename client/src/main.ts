@@ -46,9 +46,11 @@ window.app = {
         // alasql('ATTACH localStorage DATABASE RuntimeDB')
         // alasql('SET AUTOCOMMIT ON')
 
+        data.playlist_url = playlist
+        data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
         data.entries = data.entries!.map((x) => ({
           ...x, playlist_url: playlist
-        }))
+        }));
         alasql('DELETE from entries where playlist_url = ?', playlist)
         alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
 
@@ -93,10 +95,16 @@ window.app = {
     let constraints: string[] = []
     // if (Alpine.store('sett').hideWatched) constraints.push('entries->')
     const where = constraints.length > 0 ? 'where' + constraints.join(' and ') : ''
-    const playlists = alasql('select * from playlists' + where)
-    Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
 
     const entries = alasql('select * from entries' + where) // + ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
+
+    const playlists = alasql(`select playlists.*, sum(entries.duration) duration from playlists
+      join entries on entries.playlist_url = playlists.playlist_url
+      where entries.id not in (select id from watched) ${where}
+      group by playlists.playlist_url
+    `)
+    Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
+
     Alpine.store('entries', entries)
 
     Alpine.store('videoqty', alasql('select value count(distinct id) from entries' + where))
