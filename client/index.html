@@ -11,6 +11,7 @@
  <link rel="stylesheet" type="text/css" href="https://unli.xyz/awsm_theme_pearl-lusta.css" media="all">
 
  <title>Ejectube</title>
+ <meta name="description" content="Escape the algorithm">
 </head>
 
 <body>
@@ -35,10 +36,6 @@
 
  <div id="dials" x-data>
   <div>
-   <input type="checkbox" id="playlistsOnly" x-model="$store.sett.showOnlyPlaylists">
-   <label for="playlistsOnly">Show Playlists Only</label>
-  </div>
-  <div>
    <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
    <label for="hideWatched">Hide Watched</label>
   </div>
@@ -54,6 +51,14 @@
 
  <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''" x-data>
   <div x-html="app.renderEntrees()"></div>
+ </div>
+
+ <div x-data>
+  <span>
+   <p x-text="app.randimal() + ' *' + app.randimalSound() + '*'"
+    style="font-size: small; font-weight: 500; font-style: italic;float: right;"
+    title="web decor 🕸️ (this doesn't do anything)"></p>
+  </span>
  </div>
 
 </body>

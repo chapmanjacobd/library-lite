@@ -1,5 +1,7 @@
 list of playlists -- limit shown to n per playlist with option to show all
 
+view only of x playlist
+
 play random button
 delete all button
 alasql('delete from videos')
@@ -28,7 +30,7 @@ sort by duration, title,
 sort grouped by playlist, channel, rounded duration
 randomized sort
 random video button
-refresh all subscriptions button
+refresh all subscriptions (delayed by 3 days)
 shuffle mode (auto play using random start and interval-- The Wadsworth Constant is an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information. skip to next video after configurable duration
 
 multiple databases  # alasql.databases.dbo.databaseid

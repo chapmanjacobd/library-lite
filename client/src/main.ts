@@ -32,7 +32,7 @@ window.LiteYTEmbed = LiteYTEmbed
 
 Alpine.store('playlists', [])
 Alpine.store('entries', [])
-Alpine.store('sett', { showOnlyPlaylists: false, hideWatched: true, maxEntriesVisiblePerPlaylist: 10_000 })
+Alpine.store('sett', { hideWatched: true, maxEntriesVisiblePerPlaylist: 10_000, compact: true })
 
 window.app = {
   fetchPlaylist: async function (playlist: string) {
@@ -93,21 +93,21 @@ window.app = {
   view: {},
   updateView: function () {
     let constraints: string[] = []
-    // if (Alpine.store('sett').hideWatched) constraints.push('entries->')
-    const where = constraints.length > 0 ? 'where' + constraints.join(' and ') : ''
+    if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select id from watched)')
+    const where = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
 
-    const entries = alasql('select * from entries' + where) // + ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
+    const entries = alasql(`select * from entries ${where}`) // + ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
 
     const playlists = alasql(`select playlists.*, sum(entries.duration) duration from playlists
       join entries on entries.playlist_url = playlists.playlist_url
-      where entries.id not in (select id from watched) ${where}
+      ${where}
       group by playlists.playlist_url
     `)
     Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
 
     Alpine.store('entries', entries)
 
-    Alpine.store('videoqty', alasql('select value count(distinct id) from entries' + where))
+    Alpine.store('videoqty', alasql(`select value count(distinct id) from entries ${where}`))
 
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
@@ -143,7 +143,7 @@ window.app = {
     <p x-text="
           (pl.playlist_count - $store.entries.length) + ' of '+ pl.playlist_count + ' watched ('
         + (pl.playlist_count - $store.entries.length) / pl.playlist_count * 100.0 + '%); '
-        + app.secondsToFriendlyTime(pl.duration) + ' remaining'
+        + app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.compact ? 'remaining' : 'total')
       "></p>
   </td>
 </tr>`
@@ -227,6 +227,106 @@ window.app = {
   </tbody>
   ${tableFoot}
 </table>`
+  },
+  randimal: function () {
+    return [
+      "🙈",
+      "🙉",
+      "🙊",
+      "🦧",
+      "🐕‍🦺",
+      "🦓",
+      "🐄",
+      "🐘",
+      "🐹",
+      "🦘",
+      "🕊️",
+      "🦅",
+      "🦆",
+      "🦢",
+      "🦩",
+      "🦚",
+      "🦜",
+      "🐸",
+      "🐢",
+      "🦎",
+      "🐉",
+      "🦖",
+      "🐳",
+      "🐋",
+      "🐬",
+      "🐠",
+      "🦈",
+      "🐙",
+      "🦋",
+      "🦗",
+      "💐",
+      "🌸",
+      "💮",
+      "🏵️",
+      "🦞",
+      "🦐",
+    ].random();
+  },
+  randimalSound: function () {
+    return [
+      "uuk.",
+      "eep.",
+      "hun.",
+      "meow",
+      "woof",
+      "oink",
+      "baa.",
+      "arf.",
+      "eaar",
+      "mew.",
+      "loow",
+      "moo.",
+      "ratt",
+      "bark",
+      "purr",
+      "roar",
+      "rawr",
+      "blet",
+      "bleh",
+      "grol",
+      "grr.",
+      "burp",
+      "sqak",
+      "chir",
+      "toot",
+      "tsk.",
+      "ugh.",
+      "vwop",
+      "vrüm",
+      "wee.",
+      "zonk",
+      "zip.",
+      "yip.",
+      "ssss",
+      "psst",
+      "hewo",
+      "umm.",
+      "phew",
+      "bonk",
+      "beoi",
+      "wow~",
+      "boom",
+      "oweh",
+      "beep",
+      "bah.",
+      "argh",
+      "ahhh",
+      "ahem",
+      "chow",
+      "clik",
+      "lah.",
+      "slam",
+      "sigh",
+      "kerh",
+      "kroo",
+      "eek.",
+    ].random();
   }
 }
 
