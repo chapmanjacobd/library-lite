@@ -1,16 +1,9 @@
+deploy
+
+
 list of playlists -- limit shown to n per playlist with option to show all
 
 
-play random button
-delete all button
-alasql('delete from videos')
-refreshView
-
-
-total runtime
-
-mobile friendly UI
-templates?
 random pastel background color?
 
 transition animations

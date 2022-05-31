@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="htmlroot">
 
 <head>
  <meta charset="UTF-8" />
@@ -134,17 +134,43 @@ chapmanjacobd @/t gmail
       </div>
 
       <div>
+       <button type="button" @click="alasql('delete from playlists;delete from entries;');app.refreshView()">⚠️ Delete
+        All
+        Playlists/Videos ⚠️</button>
+      </div>
+
+      <div>
        <button type="button" @click="app.refreshPlaylists">Refresh Playlists</button>
       </div>
       <div>
-       <button type="button" @click="app.updateView">Refresh UI</button>
+       <button type="button" @click="app.refreshView">Refresh UI</button>
       </div>
+
+      <details>
+       <summary>Advanced Settings</summary>
+       <div>
+        <button type="button" @click="app.changeTheBackgroundColor">Change the background colour</button>
+       </div>
+       <div>
+        <button type="button" @click="alasql('delete from watched')">❗☠️ Delete All Watched 💣</button>
+        <span>There is not reason to run this. If you add playlists which have the same videos you'll see the same
+         videos instead of those already being hidden for you </span>
+       </div>
+      </details>
 
      </div>
     </details>
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
      <div x-html="app.renderPlaylists()"></div>
+    </div>
+
+    <div xdata id='fun'>
+     <div>
+      <button type="button"
+       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">Play
+       Random</button>
+     </div>
     </div>
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">

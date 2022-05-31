@@ -9,6 +9,11 @@ import { html, randomPASTEL, secondsToFriendlyTime } from './utils';
 
 const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
 
+function changeTheBackgroundColor() {
+  window.htmlroot.style.background = randomPASTEL((Math.random() + 1).toString(36).substring(7))
+}
+changeTheBackgroundColor()
+
 if (devMode) {
   import.meta.hot
 }
@@ -33,7 +38,7 @@ Alpine.store('entries', [])
 Alpine.store('sett', { hideWatched: true, entriesLimit: 100, compact: true, selectedVideo: {} })
 
 window.app = {
-  randomPASTEL, secondsToFriendlyTime,
+  randomPASTEL, changeTheBackgroundColor, secondsToFriendlyTime,
   fetchPlaylist: async function (playlist: string) {
     if (playlist.length < 5) return;
 
@@ -60,11 +65,11 @@ window.app = {
         alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
 
         app.cleanUpDuplicates('watched')
-        app.updateView()
+        app.refreshView()
       })
   },
   view: {},
-  updateView: function () {
+  refreshView: function () {
     let constraints: string[] = []
     let entriesConstraints: string[] = []
     let playlistConstraints: string[] = []
@@ -75,9 +80,9 @@ window.app = {
     const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
     //  maybe construct the query per playlist then union all~~
+    const entriesSQL = [].join(' UNION ALL ')
     const entries = alasql(`select entries.*
         , watched.id IS NOT NULL as watched
-        , row_number() over (partition by playlist_url ${entriesOrderBy}) as group_limit
       from entries
       outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
       ${entriesWhere}
@@ -107,14 +112,17 @@ window.app = {
   cleanUpDuplicates: function (table: string) {
     const d = alasql(`select distinct * from ${table}`)
     alasql(`delete from ${table}`)
-    alasql(`insert into ${table} select * from ?`, [d])
+    alasql(`insert into ${table} (ie_key, id) select ie_key, id from ?`, [d])
   },
   renderVideo: function (v: Entree) {
     function wrapPlayer(player: string) {
       return `<div style="height:50vh">${player}</div>`
     }
-    if (v.ie_key == 'Youtube') return wrapPlayer(loadYT(v.url))
-    return html``
+    let player = ''
+    if (v.ie_key == 'Youtube') player = wrapPlayer(loadYT(v.url))
+
+    if (player != '') app.markVideoWatched(v)
+    return player
   },
   renderPlaylists: function () {
     const sumPlaylistCount = alasql('select value sum(playlist_count) from playlists')
@@ -186,8 +194,7 @@ window.app = {
       <template x-if="$store.entries.length > 0">
         <div style="display:flex;justify-content: space-between;">
           <span
-            x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? '; ' + ${countWatched} + ' hidden watched or unavailable videos' : '') +')'"></span>
-        </div>
+            x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? ' shown; ' + ${countWatched} + ' watched or unavailable videos' : '') +')'"></span>        </div>
       </template>
     </td>
   </tr>
@@ -279,6 +286,7 @@ window.app = {
     ].random();
   },
   onomonopia: function () {
+    // https://youtu.be/tuFRz18rMQk
     return [
       "ahem",
       "ahhh",
@@ -349,7 +357,7 @@ if (devMode) {
 }
 
 Alpine.start()
-app.updateView()
+app.refreshView()
 
 
 // if (!devMode && Math.random() < 0.05) fullstory();

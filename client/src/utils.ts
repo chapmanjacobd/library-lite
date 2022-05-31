@@ -15,9 +15,8 @@ function hashCode(str: string) {
     return hash;
 }
 export function randomPASTEL(str: string) {
-    return `hsla(${~(hashCode(str) % 360)}, 70%,70%,0.8)`;
+    return `hsla(${~(hashCode(str) % 360)}, 70%,70%,0.4)`;
 }
-
 export function secondsToFriendlyTime(seconds: number) {
     seconds = Number(seconds);
     var d = Math.floor(seconds / (3600 * 24));
