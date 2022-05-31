@@ -1,4 +1,4 @@
-export function html(...args: TemplateStringsArray[]) {
+export function html(...args: [string | TemplateStringsArray]) {
     return args
 }
 

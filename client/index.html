@@ -14,50 +14,136 @@
  <meta name="description" content="Escape the algorithm">
 </head>
 
-<body>
- <div id="app"></div>
- <script type="module" src="/src/main.ts"></script>
+<!--
+-----------------------=#*##+#%%**#####+#*####*%*##+**##@@@@#--------------------------
+-----------------------#**%**%%%*+##*##*####**#%####*###@@@@#--------------------------
+-----------------------%*#%**%###+##*#*##*###*##########@@@@#=-------------------------
+-----------------------%#%#+#%###+##+#**%#+*%%##%*###*##@@%@@+-------------------------
+-----------------------%#%%*#%#**#+##*#**#####*#****###%@@%@@+-------------------------
+-----------------------#%@%+%#*####***+=--=+++*****#*%%@@%@@%+-------------------------
+-----------------------*###+%##*#**+=++----------==+*##%@#@@+--------------------------
+------------------------###*###%#*==**+---=--------=+*%@%%@@=--------------------------
+-----------------------=##*%+##*#*++##==-=+==------==**%%@@@%%*+=----------------------
+--------------------+##%%#*#%##+%#+*###=*+*+***=---==**%@@%@@@@%#*=--------------------
+---------------==+#%%@@@@%#*#%#*##+#**+*#+#*+---==+***##@@@%@@@@@%#*-------------------
+-----==+++##%%%%%%%@@@@@@@%#*#@%*#+#++**##*=*#*##***+####@@@@@%@@@%##------------------
+=+*##%%%%%%%%%%%@@@@@@@@@@%=%*%@*#**#*+#+#=***#*+**++*####%@%@@%%@@%##-----------------
+%%%%%@@%%%%@%%@@@@@@@@@@@@@%*#%%*#**#**#*+-=++=-----=*%#%%%@@%@@%@@%##-----------------
+#%%@%%%%@@@%%@@@@@%%%@@@@@@@%%@%*#****+**---==-----+*##%@%@@@@%@%%@%##-----------------
+%%%%#%@@@@%%@@@@@%%@@@@@@%@@@@@@##**#**+----++=---=**%@%%@@@@@@@%%@#%#-----------------
+%%%#%%@@@%#@@@@@%%%@@@%%%%%@@@@@%%****--=+==+*=---+*#%%@@@@@@@@@@@%#%#-----------------
+@%%#%@@@@#%@@@@@%%@@@%%%%%@@@@@%%###**-===+++==+=-+##%%@@@@@@@@@@@##@%+----------------
+@@%%#%@@%#@@@@@%%@@%%%%@@@@@@##%#*###*---=========*#*@%#@@@@@@@@@%#%@%%#+=-------------
+%@@%%%@@%#@@@@@%%@@%%%@@%#####%@#+=*##+--=++====+**+*@%#%@%%@@@@@##%@@%%%%%#*+**%#%#%#*
+%%@@%%@@##@@@@@%%@%%%%%%###%######***##=-----=*#*++*#*##%@##%@@@%#%@@@@@%%%%%%%%%%%%###
+#%%@@%@%##%@@@@@%@%%@@%*###%%###%###**#%*++++%#***######@@%##%@%##%@@@@@%%%%%%@%%##%%%%
+%##%%%@%%%#@@@@@%@%@@#%###%@%######****##++**#**########@@%##%%##%@@@@@%%%#%###%%@@%%%%
+%%##%%@%%@%%%@@@@@@@@##*###%###*##*#***#%*=+##**########%@%##%##%%%@@%%%%%%%@%##%%%####
+@%%#%%@%%@@%%%@@@@@@@%#*+*#####**####*#*##+#%##**#######%%#*###%%%%%%%##%%%@@%%##%%%%%%
+@%%%#%%%%%@@%%%@@@@@@@#%*+=+##*#**####+#%%*#%#+######%%%%++###%##%%%%%%%@@@@%%%###%%%@@
+@%%%#%%%%%%@@%%%%@@@@@%%%##**#%*#####**#*%###*##**##%%@%**%##%%#%%%%###%%%@@%%##%%%%##%
+@%%%#%%%%%%%%@@%%#%@@@@%%##*#*#%%%####**##%#*##**#%%%@#*#%#%%%%%%#####%%%%%%%%%%%@%%%%%
+%%%%%%%%%%%%%@@%%%%%%%%@@@%@##+#@%%%####*########%@@@@*#%%#%%%%#%%%%%%%%@%%@%%%%@@@%%%%
+%%%%%%@@%%%#%@@%##%%%%##%@%%@%*#@@%%%%#########%@@@@@%#%@%%@@%%%%%%%%#=##%%%%@@@%%%%%%%
+%%%%@@%%%%%%@@%%%%%%%%#%@@@@%%%@@@@%%@%#######%@@%%%@@%%%%@@%%@%%%@%#+=#+#@%%@@@@%%%%%%
+%%@@@%%%#%%@%%%%%%%%%%@@@@@@%%@@@@@%#@@%#####%@%%#%%@eat@%%%%@%%%%@%**%*#%@@#@@@@@@%%@@
+@@@@%%#%@@%%%@@@@@@@@@@@@@@@%%@@@@@@#%@@%###%@%##%@@%%@@@@@@@%@@##%%##@%%%%@#@@@@@@@@@@
+-->
 
- <div x-data>
-  <div x-html="app.loadYTlazy('ogfYd705cRs',`Play: Keynote (Google I/O '18)`)"></div>
+<body>
+ <script type="module" src="/src/main.ts"></script>
+ <details>
+  <summary>
+   <h1 title="pronounced eject ube 🍠">⏏️🇺🅱️🇪</h1>
+  </summary>
+  <div> Escape the algorithm that <span title="sites">other tubes</span> impose on you</div>
+ </details>
+
+ <div x-data x-show="$store.sett.selectedVideo.ie_key != ''">
+  <div x-html="app.renderVideo($store.sett.selectedVideo)"></div>
  </div>
 
  <div id="addNew" x-data="{
-   playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
-   async submit($event) {
-     await app.fetchPlaylist(this.playlistToAdd)
-   }
- }">
+       playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
+       async submit($event) {
+         await app.fetchPlaylist(this.playlistToAdd)
+       }
+     }">
   <label for="addNewInput">Add New Playlist or Channel:</label>
   <input type="text" name="addNewInput" id="addNewInput" x-model="playlistToAdd"
    placeholder="https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F" @keyup.enter="submit" />
   <button type="button" @click="submit">Submit</button>
  </div>
 
- <div id="dials" x-data>
-  <div>
-   <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
-   <label for="hideWatched">Hide Watched</label>
-  </div>
-  <div>
-   <input type="checkbox" id="compact" x-model="$store.sett.compact">
-   <label for="compact">Compact UI</label>
-  </div>
- </div>
-
- <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''" x-data>
-  <div x-html="app.renderPlaylists()"></div>
- </div>
-
- <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''" x-data>
-  <div x-html="app.renderEntrees()"></div>
- </div>
-
  <div x-data>
-  <span>
-   <p x-text="app.randimal() + ' *' + app.randimalSound() + '*'"
-    style="font-size: small; font-weight: 500; font-style: italic;float: right;"
-    title="web decor 🕸️ (this doesn't do anything)"></p>
+  <template x-if="$store.playlists.length == 0">
+   <div>Add a playlist or channel URL to get started</div>
+  </template>
+
+  <template x-if="$store.playlists.length > 0">
+   <div>
+
+    <details>
+     <summary>Settings</summary>
+
+     <div id="dials" x-data>
+
+      <div>
+       <label for="entriesOrderByList">Order By</label>
+       <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy">
+        <option>Random</option>
+        <option>Playlist</option>
+        <option>Duration</option>
+        <option>Uploader</option>
+        <option>Playlist Count</option>
+        <option>Title</option>
+       </select>
+      </div>
+
+      <div>
+       <label for="entriesLimitList">Max videos shown per playlist</label>
+       <select id="entriesLimitList" x-model="$store.sett.entriesLimit">
+        <option value="">No Limit</option>
+        <option>1</option>
+        <option>5</option>
+        <option>10</option>
+        <option>50</option>
+        <option>100</option>
+        <option>500</option>
+        <option>1000</option>
+       </select>
+      </div>
+
+      <div>
+       <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
+       <label for="hideWatched">Hide Watched</label>
+      </div>
+
+      <div>
+       <input type="checkbox" id="compact" x-model="$store.sett.compact">
+       <label for="compact">Compact UI</label>
+      </div>
+
+     </div>
+    </details>
+
+    <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
+     <div x-html="app.renderPlaylists()"></div>
+    </div>
+
+    <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
+     <div x-html="app.renderEntrees()"></div>
+    </div>
+
+   </div>
+  </template>
+ </div>
+
+ <div x-data id="footer">
+  <span style="float: right;">
+   <span x-text="app.onomonopia() + ' '" style="font-size: small; font-weight: 500; font-style: italic;"
+    title="web decor 🕸️ (this doesn't do anything)"></span>
+   <span x-text="app.randimal()"></span>
   </span>
  </div>
 

@@ -7,22 +7,51 @@
   margin-top: 60px;
 }
 
+summary>h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+}
+
 #addNew {
   display: flex;
   align-items: center;
+  margin: 0.5em;
 }
 
 #addNew>label {
   font-size: 0.9rem;
 }
 
+#addNewInput {
+  margin-right: 0.8em;
+}
+
 #dials {
   display: flex;
-  justify-content: space-evenly;
+  flex-direction: column;
 }
 
 tr td {
   text-overflow: ellipsis;
-  max-width: 20em;
+  /* max-width: 20em; */
   overflow: hidden;
+}
+
+
+#tableContainer {
+  margin: 1em 0;
+}
+
+
+table td:last-child,
+table th:last-child,
+table td:first-child,
+table th:first-child {
+  background-image: unset;
+  padding: 0.35em 0.75em;
 }

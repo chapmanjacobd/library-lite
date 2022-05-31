@@ -1,5 +1,6 @@
 list of playlists -- limit shown to n per playlist with option to show all
 
+order by dropdown
 view only of x playlist
 
 play random button
@@ -36,3 +37,8 @@ shuffle mode (auto play using random start and interval-- The Wadsworth Constant
 multiple databases  # alasql.databases.dbo.databaseid
 # alasql('show databases')
 export/import db
+
+test large data with TEDx channel
+
+probably won't implement right away but PR could be merged:
+instant search (ctrl-f works fine until people have more than 5,000 videos or so). With channels like TEDx (over 170,000 videos) this could be useful.
