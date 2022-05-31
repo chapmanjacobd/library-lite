@@ -5,7 +5,7 @@ import 'material-symbols/rounded.css';
 import { loadYT } from './players';
 import './style.css';
 import { Entree, Playlist } from './types';
-import { html } from './utils';
+import { html, randomPASTEL, secondsToFriendlyTime } from './utils';
 
 const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
 
@@ -33,6 +33,7 @@ Alpine.store('entries', [])
 Alpine.store('sett', { hideWatched: true, maxEntriesVisiblePerPlaylist: 10_000, compact: true, selectedVideo: {} })
 
 window.app = {
+  randomPASTEL, secondsToFriendlyTime,
   fetchPlaylist: async function (playlist: string) {
     if (playlist.length < 5) return;
 
@@ -44,12 +45,12 @@ window.app = {
         // alasql('ATTACH localStorage DATABASE RuntimeDB')
         // alasql('SET AUTOCOMMIT ON')
 
-        data.playlist_url = playlist
-        data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
-        data.entries = data.entries!.map((x) => ({
-          ...x, playlist_url: playlist
-        }));
-        alasql('DELETE from entries where playlist_url = ?', playlist)
+        // data.playlist_url = playlist
+        // data.entries = data.entries!.map((x) => ({
+        //   ...x, playlist_url: playlist
+        // }));
+        // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
+        alasql('DELETE from entries where playlist_url = ?', data.entries![0].playlist_url)
         alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
 
         delete data.entries
@@ -57,19 +58,6 @@ window.app = {
         alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
         app.updateView()
       })
-  },
-  secondsToFriendlyTime: function (seconds: number) {
-    seconds = Number(seconds);
-    var d = Math.floor(seconds / (3600 * 24));
-    var h = Math.floor(seconds % (3600 * 24) / 3600);
-    var m = Math.floor(seconds % 3600 / 60);
-
-    let display = [];
-    if (d > 0) display.push(d + ' d')
-    if (h > 0) display.push(h + ' h')
-    if (m > 0) display.push(m + ' m')
-
-    return display.join(', ');
   },
   view: {},
   updateView: function () {

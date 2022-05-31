@@ -66,7 +66,8 @@
  <div id="addNew" x-data="{
        playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
        async submit($event) {
-         await app.fetchPlaylist(this.playlistToAdd)
+         app.fetchPlaylist(this.playlistToAdd)
+         addNewInput.value = ''
        }
      }">
   <label for="addNewInput">Add New Playlist or Channel:</label>

@@ -82,6 +82,20 @@ def fetch_playlist(playlist):
         if not playlist_dict:
             return None
 
+        if playlist_dict.get("entries"):
+            for v in playlist_dict["entries"]:
+                v["channel"] = v.get("channel") or playlist_dict.get("channel")
+                v["channel_id"] = v.get("channel_id") or playlist_dict.get("channel_id")
+                v["channel_url"] = v.get("channel_url") or playlist_dict.get("channel_url")
+                v["extractor"] = v.get("extractor") or playlist_dict.get("extractor")
+                v["extractor_key"] = v.get("extractor_key") or playlist_dict.get("extractor_key")
+                v["title"] = v.get("title") or playlist_dict.get("title")
+                v["uploader"] = v.get("uploader") or playlist_dict.get("uploader")
+                v["uploader_url"] = v.get("uploader_url") or playlist_dict.get("uploader_url")
+                v["view_count"] = v.get("view_count") or playlist_dict.get("view_count")
+                v["playlist_title"] = playlist_dict.get("title")
+                v["playlist_url"] = playlist_dict.get("original_url")
+
         if playlist_dict.get("entries") is None:
             safe_del(playlist_dict, "formats")
             safe_del(playlist_dict, "requested_formats")

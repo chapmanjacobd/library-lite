@@ -38,7 +38,8 @@ h6 {
 
 tr td {
   text-overflow: ellipsis;
-  /* max-width: 20em; */
+  max-width: 30em;
+  white-space: nowrap;
   overflow: hidden;
 }
 
