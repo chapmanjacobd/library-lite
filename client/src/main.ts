@@ -30,7 +30,7 @@ window.Alpine = Alpine
 
 Alpine.store('playlists', [])
 Alpine.store('entries', [])
-Alpine.store('sett', { hideWatched: true, maxEntriesVisiblePerPlaylist: 10_000, compact: true, selectedVideo: {} })
+Alpine.store('sett', { hideWatched: true, entriesLimit: 100, compact: true, selectedVideo: {} })
 
 window.app = {
   randomPASTEL, secondsToFriendlyTime,
@@ -66,19 +66,29 @@ window.app = {
   view: {},
   updateView: function () {
     let constraints: string[] = []
+    let entriesConstraints: string[] = []
+    let playlistConstraints: string[] = []
     if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')
 
-    const where = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
-    const limit = ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
-
-    const entries = alasql(`select entries.*, watched.id IS NOT NULL as watched from entries
+    const groupLimit = Alpine.store('sett').entriesLimit
+    if (groupLimit != '') entriesConstraints.push(`group_limit <= ${groupLimit}`)
+    const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
+    const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
+    //  maybe construct the query per playlist then union all~~
+    const entries = alasql(`select entries.*
+        , watched.id IS NOT NULL as watched
+        , row_number() over (partition by playlist_url ${entriesOrderBy}) as group_limit
+      from entries
       outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
-      ${where}
+      ${entriesWhere}
+      ${entriesOrderBy}
     `)
+
+    const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
 
     const playlists = alasql(`select playlists.*, sum(entries.duration) duration from playlists
       join entries on entries.playlist_url = playlists.playlist_url
-      ${where}
+      ${playlistWhere}
       group by playlists.playlist_url
     `)
     Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
