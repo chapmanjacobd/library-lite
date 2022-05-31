@@ -164,6 +164,15 @@ window.app = {
       </template>
     </td>
   </tr>
+  <tr>
+    <td>Play</td>
+    <td>Title</td>
+    <td>Watched</td>
+    <td>Duration</td>
+    <td>Uploader</td>
+    <td>URL</td>
+    <td>Playlist Title (channel)</td>
+  </tr>
 </thead>`
 
     const videoRow = html`<tr>
@@ -172,14 +181,14 @@ window.app = {
       class="material-symbols-rounded">play_circle</span>
   </td>
   <td><span x-text="v.title" :title="v.title"></span></td>
-  <td><span x-text="v.uploader"></span></td>
   <td>
-    <span x-text="app.secondsToFriendlyTime(v.duration)"></span>
     <input type="checkbox" :checked="v.watched"
       @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
-    <label>Watched?</label>
   </td>
+  <td><span x-text="app.secondsToFriendlyTime(v.duration)"></span></td>
+  <td><span x-text="v.uploader"></span></td>
   <td><a :href="v.url" target="_blank">🔗</a></td>
+  <td><span x-text="v.playlist_title +' ('+ v.channel +')'"></span></td>
 </tr>`
 
     const tableFoot = html`<template x-if="$store.playlists > 0">

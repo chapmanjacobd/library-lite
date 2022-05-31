@@ -93,9 +93,9 @@
        <label for="entriesOrderByList">Order By</label>
        <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy">
         <option>Random</option>
+        <option>Uploader</option>
         <option>Playlist</option>
         <option>Duration</option>
-        <option>Uploader</option>
         <option>Playlist Count</option>
         <option>Title</option>
        </select>
@@ -123,6 +123,13 @@
       <div>
        <input type="checkbox" id="compact" x-model="$store.sett.compact">
        <label for="compact">Compact UI</label>
+      </div>
+
+      <div>
+       <button type="button" @click="app.refreshPlaylists">Refresh Playlists</button>
+      </div>
+      <div>
+       <button type="button" @click="app.updateView">Refresh UI</button>
       </div>
 
      </div>

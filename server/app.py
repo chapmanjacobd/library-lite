@@ -83,6 +83,7 @@ def fetch_playlist(playlist):
             return None
 
         if playlist_dict.get("entries"):
+            playlist_dict["playlist_url"] = playlist_dict.get("original_url")
             for v in playlist_dict["entries"]:
                 v["channel"] = v.get("channel") or playlist_dict.get("channel")
                 v["channel_id"] = v.get("channel_id") or playlist_dict.get("channel_id")
