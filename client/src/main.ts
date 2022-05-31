@@ -65,6 +65,8 @@ window.app = {
         alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
 
         app.cleanUpDuplicates('watched')
+        window.addNewInputSubmit.textContent = 'Submit'
+        window.addNewInputSubmit.disabled = false
         app.refreshView()
       })
   },

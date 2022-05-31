@@ -74,6 +74,8 @@ chapmanjacobd @/t gmail
  <div id="addNew" x-data="{
        playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
        async submit($event) {
+         addNewInputSubmit.textContent = 'Loading'
+         addNewInputSubmit.disabled = true
          app.fetchPlaylist(this.playlistToAdd)
          addNewInput.value = ''
        }
@@ -81,7 +83,7 @@ chapmanjacobd @/t gmail
   <label for="addNewInput">Add New Playlist or Channel:</label>
   <input type="text" name="addNewInput" id="addNewInput" x-model="playlistToAdd"
    placeholder="https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F" @keyup.enter="submit" />
-  <button type="button" @click="submit">Submit</button>
+  <button id="addNewInputSubmit" type="button" @click="submit()">Submit</button>
  </div>
 
  <div x-data>
