@@ -140,7 +140,7 @@ chapmanjacobd @/t gmail
       </div>
 
       <div>
-       <button type="button" @click="app.refreshPlaylists">Refresh Playlists</button>
+       <button type="button" @click="app.refreshPlaylists">Refresh Playlists (delayed by 3 days)</button>
       </div>
       <div>
        <button type="button" @click="app.refreshView">Refresh UI</button>
@@ -165,12 +165,43 @@ chapmanjacobd @/t gmail
      <div x-html="app.renderPlaylists()"></div>
     </div>
 
-    <div xdata id='fun'>
+    <div xdata id='fun' style="display: flex;">
      <div>
       <button type="button"
        @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">Play
-       Random</button>
+       Random 🎲</button>
      </div>
+
+     <div>
+      <button type="button"
+       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">
+       Autoplay 🤖</button>
+     </div>
+
+     <div
+      title="an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information">
+      <button type="button"
+       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">
+       Wadsworth Constant ⏩</button>
+     </div>
+
+     <div title="goes to the next video after n seconds">
+      <select x-model="$store.sett.shuffleMode">
+       <option value="" disabled>Shuffle Mode</option>
+       <option value="0">No shuffle</option>
+       <option>20</option>
+       <option>30</option>
+       <option>40</option>
+       <option>50</option>
+       <option>60</option>
+       <option>70</option>
+       <option>80</option>
+       <option>90</option>
+       <option>100</option>
+       <option>1000</option>
+      </select>
+     </div>
+
     </div>
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">

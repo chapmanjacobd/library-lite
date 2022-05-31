@@ -145,8 +145,8 @@ window.app = {
   <tr>
     <td>Title</td>
     <td title="Playlist Author">Channel</td>
-    <td>Duration</td>
     <td>Delete</td>
+    <td>Duration</td>
   </tr>
 </thead>`
 
@@ -154,14 +154,16 @@ window.app = {
   <td><a :href="pl.webpage_url" x-text="pl.title"></a></td>
   <td><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
   <td>
+    <span
+      @click="alasql('delete from playlists where playlist_url = ?',[pl.playlist_url]);alasql('delete from entries where playlist_url = ?',[pl.playlist_url]);app.refreshView()"
+      style="cursor: pointer;" class="material-symbols-rounded">delete</span>
+  </td>
+  <td>
     <p x-text="
           (pl.playlist_count - $store.entries.filter(x=> x.playlist_url == pl.playlist_url).length) + ' of '+ pl.playlist_count + ' watched ('
         + Math.round((pl.playlist_count - $store.entries.filter(x=> x.playlist_url == pl.playlist_url).length) / pl.playlist_count) * 100.0 + '%); '
         + app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
       "></p>
-  </td>
-  <td>
-    <span @click="app.deletePlaylist(pl)" style="cursor: pointer;" class="material-symbols-rounded">delete</span>
   </td>
 </tr>`
 
@@ -352,7 +354,6 @@ window.app = {
 }
 
 if (devMode) {
-  await app.fetchPlaylist('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')
   await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
 }
 

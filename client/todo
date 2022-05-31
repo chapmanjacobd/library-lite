@@ -1,29 +1,9 @@
 deploy
 
+order by
+limit shown to n per playlist with option to show all
 
-list of playlists -- limit shown to n per playlist with option to show all
-
-
-random pastel background color?
-
-transition animations
-add button, show if empty
-
-
-print result list for mpv (mpv https://url \n)
-
-tree toggle to see list of videos inside of each playlist
-delete by playlist
-delete video (keep track of deleted video ids in special table) subtract from playlist count when deleting
-watch video (mark watched video id automatically)
-watched toggle
-search
-sort by duration, title,
-sort grouped by playlist, channel, rounded duration
-randomized sort
-random video button
-refresh all subscriptions (delayed by 3 days)
-shuffle mode (auto play using random start and interval-- The Wadsworth Constant is an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information. skip to next video after configurable duration
+refresh all subscriptions
 
 multiple databases  # alasql.databases.dbo.databaseid
 # alasql('show databases')
