@@ -75,6 +75,7 @@ chapmanjacobd @/t gmail
        playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
        async submit($event) {
          addNewInputSubmit.textContent = 'Loading'
+         addNewInput.disabled = true
          addNewInputSubmit.disabled = true
          app.fetchPlaylist(this.playlistToAdd)
          addNewInput.value = ''
@@ -206,6 +207,31 @@ chapmanjacobd @/t gmail
      </div>
 
     </div>
+
+    <details>
+     <summary>I feel like something is broken</summary>
+
+     <h6>Why does it say I've already watched a video?</h6>
+     <p>Unavailable videos are marked as watched when importing playlist data. They are counted as watched so you don't
+      have to
+      see them. If you want to see them just go to settings and uncheck "Hide watched videos" :)</p>
+
+     <h6>Where did my playlist go?</h6>
+     <p>Playlists without any unwatched videos will be hidden until new unwatched videos are available. Try clicking
+      "Refresh Playlists" in the settings. This might take up to
+      <code>(20 seconds * the number of playlists you have)</code>
+     </p>
+
+     <h6>Why are playlists limited to 2000 videos?</h6>
+     <p>Unfortunetly, YouTube only wants us to request ~100 videos/second so to provide a snappy user experience we
+      limit the playlist history to the most recent 2,000 videos. If YouTube ever provides a bulk API for this
+      metadata--to aid long-tail video discovery--we will definitely raise this limit--but for now it would take 5 hours
+      to scan the full TEDx channel. Not great. If, however, there is a userbase for it I can write a CLI tool that
+      would save a file with the full history to import into this website.</p>
+
+     <h6>Something else seems wrong</h6>
+     <p>You can submit a bug report here <a href="https://github.com/chapmanjacobd/lb-lite/issues/new">here</a>.</p>
+    </details>
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
      <div x-html="app.renderEntrees()"></div>

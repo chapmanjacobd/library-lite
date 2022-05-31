@@ -23,7 +23,8 @@ ydl_opts = {
     # "writesubtitles": True,
     # "writeautomaticsub": True,
     # "subtitleslangs": "en.*,EN.*",
-    # "playlistend": 10_000,
+    # "playliststart": 2000, # an optimization needs to be made in yt-dlp to support this. 2000-4000 takes 40 seconds instead of 20.
+    "playlistend": 2000,
     "rejecttitle": " | ".join(
         [
             "Trailer",

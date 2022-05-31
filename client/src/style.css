@@ -1,3 +1,9 @@
+#htmlroot {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 5000px;
+}
+
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

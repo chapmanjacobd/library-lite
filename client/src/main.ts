@@ -2,7 +2,7 @@
 import alasql from 'alasql';
 import Alpine from 'alpinejs';
 import 'material-symbols/rounded.css';
-import { loadYT } from './players';
+import { loadYT, vimeo } from './players';
 import './style.css';
 import { Entree, Playlist } from './types';
 import { html, randomPASTEL, secondsToFriendlyTime } from './utils';
@@ -65,6 +65,7 @@ window.app = {
         alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
 
         app.cleanUpDuplicates('watched')
+        addNewInput.disabled = false
         window.addNewInputSubmit.textContent = 'Submit'
         window.addNewInputSubmit.disabled = false
         app.refreshView()
@@ -122,18 +123,24 @@ window.app = {
     }
     let player = ''
     if (v.ie_key == 'Youtube') player = wrapPlayer(loadYT(v.url))
+    if (v.ie_key == 'Vimeo') player = wrapPlayer(vimeo(v.id))
 
     if (player != '') app.markVideoWatched(v)
     return player
   },
   renderPlaylists: function () {
     const sumPlaylistCount = alasql('select value sum(playlist_count) from playlists')
+    const countWatched = alasql('select value count(distinct playlist_url) from entries where id in (select id from watched)')
 
     const tableHead = `<thead>
   <tr>
     <td colspan="2">
       <!-- colspan="100" -->
       <div><span>Playlists</span><span x-text="' ('+ $store.playlists.length +')'"></span></div>
+        <div>
+          <span
+            x-text="'Playlists ('+ $store.playlists.length + ($store.sett.hideWatched && ${countWatched} > 0 ? ' shown; ' + ${countWatched} + ' completely watched playlists' : '') +')'"></span>
+        </div>
     </td>
     <td colspan="2">
       <p
@@ -198,7 +205,8 @@ window.app = {
       <template x-if="$store.entries.length > 0">
         <div style="display:flex;justify-content: space-between;">
           <span
-            x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? ' shown; ' + ${countWatched} + ' watched or unavailable videos' : '') +')'"></span>        </div>
+            x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? ' shown; ' + ${countWatched} + ' watched or unavailable videos' : '') +')'"></span>
+        </div>
       </template>
     </td>
   </tr>

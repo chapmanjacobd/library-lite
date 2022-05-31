@@ -1,7 +1,7 @@
 
 export interface Entree {
     _type: "url",
-    ie_key: "Youtube",
+    ie_key: string, // Youtube
     id: "dQw4w9WgXcQ",
     url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     title: "Rick Astley - Never Gonna Give You Up (Official Music Video)",

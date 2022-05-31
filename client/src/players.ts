@@ -3,7 +3,7 @@
 import LiteYTEmbed from 'lite-youtube-embed';
 import 'lite-youtube-embed/src/lite-yt-embed.css';
 
-window.LiteYTEmbed = LiteYTEmbed
+// window.LiteYTEmbed = LiteYTEmbed
 
 function parseYTid(url: string) {
     let urla = url.split(/(vi\/|v%3D|v=|\/v\/|youtu\.be\/|\/embed\/)/);
@@ -21,4 +21,10 @@ function loadYTlazy(url: string, playlabel: string, start: number = 0, end: numb
 function ytValidId(url: string) {
     if (!url) return false;
     return url != "" && !parseYTid(url).includes("search");
+}
+
+export function vimeo(id: string) {
+    return `<iframe src="https://player.vimeo.com/video/${id}?&autoplay=1&color=ffffff&title=0&byline=0&portrait=0"
+                style="width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen>
+            </iframe>  <script src="https://player.vimeo.com/api/player.js"></script>`
 }
