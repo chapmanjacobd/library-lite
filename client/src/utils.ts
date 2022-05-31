@@ -28,6 +28,7 @@ export function secondsToFriendlyTime(seconds: number) {
     if (d > 0) display.push(d + ' d')
     if (h > 0) display.push(h + ' h')
     if (m > 0) display.push(m + ' m')
+    if (display.length == 0) display.push('<1m')
 
     return display.join(', ');
 }

@@ -50,21 +50,23 @@ window.app = {
         //   ...x, playlist_url: playlist
         // }));
         // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
+
         alasql('DELETE from entries where playlist_url = ?', data.entries![0].playlist_url)
         alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
+        alasql('INSERT INTO watched (ie_key, id) SELECT ie_key, id FROM entries where title in (?)', ["[Deleted video]"])
 
         delete data.entries
         alasql('DELETE from playlists where webpage_url = ?', data.webpage_url)
         alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
+
+        app.cleanUpDuplicates('watched')
         app.updateView()
       })
   },
   view: {},
   updateView: function () {
     let constraints: string[] = []
-    if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select id from watched)')
-
-    constraints.push('title != "[Deleted video]"')
+    if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')
 
     const where = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
     const limit = ' limit ' + Alpine.store('sett').maxEntriesVisiblePerPlaylist
@@ -86,10 +88,16 @@ window.app = {
     return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
   },
   markVideoWatched: function (v: { ie_key: string; id: string; }) {
+    // if (app.isVideoWatched(v)) return;
     return alasql('INSERT INTO watched SELECT * FROM ?', [[{ ie_key: v.ie_key, id: v.id }]])
   },
   markVideoUnwatched: function (v: { ie_key: string; id: string; }) {
     return alasql('DELETE FROM watched where ie_key=? and id=?', [v.ie_key, v.id])
+  },
+  cleanUpDuplicates: function (table: string) {
+    const d = alasql(`select distinct * from ${table}`)
+    alasql(`delete from ${table}`)
+    alasql(`insert into ${table} select * from ?`, [d])
   },
   renderVideo: function (v: Entree) {
     function wrapPlayer(player: string) {
@@ -99,11 +107,28 @@ window.app = {
     return html``
   },
   renderPlaylists: function () {
-    const tableHead = html`<thead>
+    const sumPlaylistCount = alasql('select value sum(playlist_count) from playlists')
+
+    const tableHead = `<thead>
   <tr>
-    <td colspan="100">
+    <td colspan="2">
+      <!-- colspan="100" -->
       <div><span>Playlists</span><span x-text="' ('+ $store.playlists.length +')'"></span></div>
     </td>
+    <td colspan="2">
+      <p
+        x-text="'Total: '
+                  + (${sumPlaylistCount} - $store.entries.length) + ' of '+ ${sumPlaylistCount} + ' watched ('
+                  + Math.round(((${sumPlaylistCount} - $store.entries.length) / ${sumPlaylistCount})) * 100.0 + '%); '
+                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td>Title</td>
+    <td title="Playlist Author">Channel</td>
+    <td>Duration</td>
+    <td>Delete</td>
   </tr>
 </thead>`
 
@@ -117,6 +142,9 @@ window.app = {
         + app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
       "></p>
   </td>
+  <td>
+    <span @click="app.deletePlaylist(pl)" style="cursor: pointer;" class="material-symbols-rounded">delete</span>
+  </td>
 </tr>`
 
     const tableFoot = html`<template x-if="$store.playlists > 0">
@@ -129,20 +157,9 @@ window.app = {
 
   </tfoot>
 </template>`
-    const sumPlaylistCount = alasql('select value sum(playlist_count) from playlists')
     return `<table>
   ${tableHead}
   <tbody>
-  <tr>
-    <td colspan="2">Total</td>
-    <td>
-      <p x-text="
-            (${sumPlaylistCount} - $store.entries.length) + ' of '+ ${sumPlaylistCount} + ' watched ('
-          + Math.round(((${sumPlaylistCount} - $store.entries.length) / ${sumPlaylistCount})) * 100.0 + '%); '
-          + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
-        "></p>
-    </td>
-  </tr>
     <template x-for="(pl, pindex) in $store.playlists" :key="pindex">
       ${playlistRow}
     </template>
@@ -159,7 +176,7 @@ window.app = {
       <template x-if="$store.entries.length > 0">
         <div style="display:flex;justify-content: space-between;">
           <span
-            x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? '; ' + ${countWatched} + ' hidden watched videos' : '') +')'"></span>
+            x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? '; ' + ${countWatched} + ' hidden watched or unavailable videos' : '') +')'"></span>
         </div>
       </template>
     </td>
@@ -311,13 +328,14 @@ window.app = {
       "yip.",
       "zip.",
       "zonk",
+      "quak",
     ].random();
   }
 }
 
 if (devMode) {
   await app.fetchPlaylist('https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F')
-  await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLAskVVPnzWMBa_Jw9IbCm_uyjI8oawr-W')
+  await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
 }
 
 Alpine.start()
