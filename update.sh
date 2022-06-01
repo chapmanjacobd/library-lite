@@ -10,5 +10,5 @@ npm install
 npm run build
 
 cd ../server/
-pipenv update
+pipenv install
 systemctl restart ejectUBE
