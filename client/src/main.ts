@@ -7,7 +7,7 @@ import './style.css';
 import { Entree, Playlist } from './types';
 import { downloadObjectAsJson, fileToJSON, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime } from './utils';
 
-const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
+const devMode = window.location.hostname == 'localhost';
 
 function changeTheBackgroundColor() {
   window.htmlroot.style.background = randomPASTEL((Math.random() + 1).toString(36).substring(7))
