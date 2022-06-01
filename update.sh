@@ -2,5 +2,6 @@
 
 cd $(cd -P -- "$(dirname -- "$0")" && pwd -P)
 
+git pull
 pipenv update
-systemctl --user restart ejectube-server
+systemctl restart ejectUBE
