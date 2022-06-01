@@ -31,3 +31,124 @@ export function secondsToFriendlyTime(seconds: number) {
 
     return display.join(', ');
 }
+export function downloadObjectAsJson(exportObj: object, exportName: string) {
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+export async function fileToJSON(event: Event): Promise<object> {
+    const file = event.target.files[0]
+    return new Promise((resolve, reject) => {
+        const fileReader = new FileReader()
+        fileReader.onload = event => resolve(JSON.parse(event.target.result))
+        fileReader.onerror = error => reject(error)
+        fileReader.readAsText(file)
+    })
+}
+export function randimal() {
+    return [
+        "🌸",
+        "🐄",
+        "🐉",
+        "🐋",
+        "🐕‍🦺",
+        "🐘",
+        "🐙",
+        "🐠",
+        "🐢",
+        "🐬",
+        "🐳",
+        "🐸",
+        "🐹",
+        "💐",
+        "💮",
+        "🕊️",
+        "🙈",
+        "🙉",
+        "🙊",
+        "🦅",
+        "🦆",
+        "🦈",
+        "🦋",
+        "🦎",
+        "🦐",
+        "🦓",
+        "🦖",
+        "🦗",
+        "🦘",
+        "🦚",
+        "🦜",
+        "🦞",
+        "🦢",
+        "🦧",
+        "🦩",
+    ].random();
+}
+export function onomonopia() {
+    // https://youtu.be/tuFRz18rMQk
+    return [
+        "ahem",
+        "ahhh",
+        "arf.",
+        "argh",
+        "arr!",
+        "baa.",
+        "bah.",
+        "bark",
+        "beep",
+        "beoi",
+        "bleh",
+        "blet",
+        "bonk",
+        "boom",
+        "burp",
+        "chir",
+        "chow",
+        "clik",
+        "eaar",
+        "eek!",
+        "eep.",
+        "grol",
+        "grr.",
+        "hewo",
+        "hun.",
+        "kerh",
+        "kroo",
+        "lah.",
+        "loow",
+        "meow",
+        "mew.",
+        "moo.",
+        "oink",
+        "oweh",
+        "phew",
+        "psst",
+        "purr",
+        "rats",
+        "rawr",
+        "roar",
+        "sigh",
+        "slam",
+        "sqak",
+        "ssss",
+        "toot",
+        "tsk.",
+        "ugh.",
+        "umm.",
+        "uuk.",
+        "vrüm",
+        "vwop",
+        "wee.",
+        "woof",
+        "wow~",
+        'yarr',
+        "yip.",
+        "zip.",
+        "zonk",
+        "quak",
+    ].random();
+}

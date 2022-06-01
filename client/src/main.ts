@@ -2,10 +2,10 @@
 import alasql from 'alasql';
 import Alpine from 'alpinejs';
 import 'material-symbols/rounded.css';
-import { loadYT, vimeo } from './players';
+import { vimeo, youtube } from './players';
 import './style.css';
 import { Entree, Playlist } from './types';
-import { html, randomPASTEL, secondsToFriendlyTime } from './utils';
+import { downloadObjectAsJson, fileToJSON, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime } from './utils';
 
 const devMode = window.location.hostname == 'localhost' || "127.0.0.1";
 
@@ -21,28 +21,22 @@ if (devMode) {
 let API_domain = "https://unli.xyz/api/yt/v1";
 if (devMode) API_domain = "http://127.0.0.1:8000/v1";
 
-alasql('CREATE localStorage DATABASE IF NOT EXISTS RuntimeDB')
-alasql('ATTACH localStorage DATABASE RuntimeDB')
-// if (!devMode)
-alasql('USE RuntimeDB')
-alasql('SET AUTOCOMMIT ON')
-alasql('CREATE TABLE IF NOT EXISTS playlists');
-alasql('CREATE TABLE IF NOT EXISTS entries');
-alasql('CREATE TABLE IF NOT EXISTS watched');
-
 window.alasql = alasql
 window.Alpine = Alpine
 
 Alpine.store('playlists', [])
 Alpine.store('entries', [])
-Alpine.store('sett', { hideWatched: true, entriesLimit: 100, compact: true, selectedVideo: {} })
+Alpine.store('sett', {
+  hideWatched: true,
+  entriesOrderBy: 'random()',
+  entriesLimit: '', compact: true, selectedVideo: {},
+  automark: true, autoplay: false, wadsworth: false
+})
 
 window.app = {
   randomPASTEL, changeTheBackgroundColor, secondsToFriendlyTime,
   fetchPlaylist: async function (playlist: string) {
     if (playlist.length < 5) return;
-
-    console.log('fetching new playlist');
 
     await fetch(`${API_domain}?playlist=` + playlist)
       .then(response => response.json())
@@ -50,15 +44,15 @@ window.app = {
         // alasql('ATTACH localStorage DATABASE RuntimeDB')
         // alasql('SET AUTOCOMMIT ON')
 
-        // data.playlist_url = playlist
+        // data.original_url = playlist
         // data.entries = data.entries!.map((x) => ({
-        //   ...x, playlist_url: playlist
+        //   ...x, original_url: playlist
         // }));
         // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
 
-        alasql('DELETE from entries where playlist_url = ?', data.entries![0].playlist_url)
+        alasql('DELETE from entries where original_url = ?', data.entries![0].original_url)
         alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
-        alasql('INSERT INTO watched (ie_key, id) SELECT ie_key, id FROM entries where title in (?)', ["[Deleted video]"])
+        alasql('INSERT INTO watched (ie_key, id) SELECT ie_key, id FROM entries where title in (?)', ["[Deleted video]", "[Private video]"])
 
         delete data.entries
         alasql('DELETE from playlists where webpage_url = ?', data.webpage_url)
@@ -74,33 +68,85 @@ window.app = {
   view: {},
   refreshView: function () {
     let constraints: string[] = []
-    let entriesConstraints: string[] = []
-    let playlistConstraints: string[] = []
     if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')
 
-    const groupLimit = Alpine.store('sett').entriesLimit
-    if (groupLimit != '') entriesConstraints.push(`group_limit <= ${groupLimit}`)
     const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
-    //  maybe construct the query per playlist then union all~~
-    const entriesSQL = [].join(' UNION ALL ')
-    const entries = alasql(`select entries.*
+
+    let entriesSQL = `select entries.*
         , watched.id IS NOT NULL as watched
       from entries
       outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
       ${entriesWhere}
       ${entriesOrderBy}
-    `)
+    `
+    const groupLimit = Alpine.store('sett').entriesLimit
+    if (groupLimit != '') {
+      const perPlaylistSQL = alasql(`select value from playlists`).map((pl: Playlist) => {
+        const perPlaylistConstraints = [...constraints, `entries.original_url = "${pl.original_url}"`]
+        const entriesWhere = perPlaylistConstraints.length > 0 ? 'where ' + perPlaylistConstraints.join(' and ') : ''
+        const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
+
+        return `select entries.*
+        , watched.id IS NOT NULL as watched
+      from entries
+      outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
+      join playlists on playlists.original_url = entries.original_url
+      ${entriesWhere}
+      ${entriesOrderBy} LIMIT ${groupLimit}`
+      })
+      entriesSQL = perPlaylistSQL.join(' UNION ALL ')
+      console.log(entriesSQL);
+    }
+
+    const entries = alasql(entriesSQL)
 
     const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
 
     const playlists = alasql(`select playlists.*, sum(entries.duration) duration from playlists
-      join entries on entries.playlist_url = playlists.playlist_url
+      join entries on entries.original_url = playlists.original_url
       ${playlistWhere}
-      group by playlists.playlist_url
+      group by playlists.original_url
     `)
     Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
     Alpine.store('entries', entries)
+  },
+  exportCSVPlaylists: function () {
+    return alasql("SELECT * INTO CSV('playlists.csv',{headers:true}) FROM ?", [Alpine.store('playlists')])
+  },
+  exportCSVEntries: function () {
+    return alasql("SELECT * INTO CSV('videos.csv',{headers:true}) FROM ?", [Alpine.store('entries')])
+  },
+  createDB: function (dbname: string) {
+    dbname = dbname + 'DB'
+    alasql(`CREATE localStorage DATABASE IF NOT EXISTS ${dbname}`)
+    alasql(`ATTACH localStorage DATABASE ${dbname}`)
+    // if (!devMode)
+    alasql(`USE ${dbname}`)
+    alasql('SET AUTOCOMMIT ON')
+    alasql('CREATE TABLE IF NOT EXISTS playlists');
+    alasql('CREATE TABLE IF NOT EXISTS entries');
+    alasql('CREATE TABLE IF NOT EXISTS watched');
+  },
+  switchDB: function (dbname: string) {
+    const oldDB = alasql.databases.dbo.databaseid
+    alasql(`DETACH DATABASE ${oldDB}`)
+    alasql(`ATTACH localStorage DATABASE ${dbname}`)
+    app.refreshView()
+  },
+  importDB: async function (event: Event) {
+    let data = await fileToJSON(event)
+    if (data.playlists || data.watched) alasql.tables = data
+  },
+  exportDB: function (dbname: string = alasql.databases.dbo.databaseid) {
+    downloadObjectAsJson(alasql.tables, dbname)
+  },
+  deleteDB: function (dbname: string = alasql.databases.dbo.databaseid) {
+    alasql('drop table entries')
+    alasql('drop table playlists')
+    alasql(`DETACH database ${dbname}`)
+    alasql(`drop localstorage database ${dbname}`)
+    app.refreshView()
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
     return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
@@ -122,33 +168,22 @@ window.app = {
       return `<div style="height:50vh">${player}</div>`
     }
     let player = ''
-    if (v.ie_key == 'Youtube') player = wrapPlayer(loadYT(v.url))
+    if (v.ie_key == 'Youtube') player = wrapPlayer(youtube(v.id))
     if (v.ie_key == 'Vimeo') player = wrapPlayer(vimeo(v.id))
 
-    if (player != '') app.markVideoWatched(v)
+    if (player !== '') app.markVideoWatched(v)
     return player
   },
   renderPlaylists: function () {
-    const sumPlaylistCount = alasql('select value sum(playlist_count) from playlists')
-    const countWatched = alasql('select value count(distinct playlist_url) from entries where id in (select id from watched)')
+    const countWatched = alasql('select value count(distinct original_url) from entries where id in (select id from watched)')
 
     const tableHead = `<thead>
   <tr>
-    <td colspan="2">
-      <!-- colspan="100" -->
-      <div><span>Playlists</span><span x-text="' ('+ $store.playlists.length +')'"></span></div>
+    <td colspan="100">
         <div>
           <span
-            x-text="'Playlists ('+ $store.playlists.length + ($store.sett.hideWatched && ${countWatched} > 0 ? ' shown; ' + ${countWatched} + ' completely watched playlists' : '') +')'"></span>
+            x-text="'Playlists ('+ $store.playlists.length + ($store.sett.hideWatched && ${countWatched} > 0 ? (' shown; ' + ${countWatched} + ' completely watched playlist' + (${countWatched} > 1 ? 's' : '')) : '') +')'"></span>
         </div>
-    </td>
-    <td colspan="2">
-      <p
-        x-text="'Total: '
-                  + (${sumPlaylistCount} - $store.entries.length) + ' of '+ ${sumPlaylistCount} + ' watched ('
-                  + Math.round(((${sumPlaylistCount} - $store.entries.length) / ${sumPlaylistCount})) * 100.0 + '%); '
-                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
-      </p>
     </td>
   </tr>
   <tr>
@@ -164,13 +199,13 @@ window.app = {
   <td><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
   <td>
     <span
-      @click="alasql('delete from playlists where playlist_url = ?',[pl.playlist_url]);alasql('delete from entries where playlist_url = ?',[pl.playlist_url]);app.refreshView()"
+      @click="alasql('delete from playlists where original_url = ?',[pl.original_url]);alasql('delete from entries where original_url = ?',[pl.original_url]);app.refreshView()"
       style="cursor: pointer;" class="material-symbols-rounded">delete</span>
   </td>
   <td>
     <p x-text="
-          (pl.playlist_count - $store.entries.filter(x=> x.playlist_url == pl.playlist_url).length) + ' of '+ pl.playlist_count + ' watched ('
-        + Math.round((pl.playlist_count - $store.entries.filter(x=> x.playlist_url == pl.playlist_url).length) / pl.playlist_count) * 100.0 + '%); '
+          (pl.playlist_count - $store.entries.filter(x=> x.original_url == pl.original_url).length) + ' of '+ pl.playlist_count + ' watched ('
+        + Math.round((pl.playlist_count - $store.entries.filter(x=> x.original_url == pl.original_url).length) / pl.playlist_count) * 100.0 + '%); '
         + app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
       "></p>
   </td>
@@ -198,16 +233,25 @@ window.app = {
   },
   renderEntrees: function () {
     const countWatched = alasql('select value count(distinct id) from watched')
+    const sumPlaylistCount = alasql('select value sum(playlist_count) from playlists')
 
     const tableHead = `<thead>
   <tr>
-    <td colspan="100">
+    <td colspan="3">
       <template x-if="$store.entries.length > 0">
         <div style="display:flex;justify-content: space-between;">
           <span
             x-text="'Videos ('+ $store.entries.length + ($store.sett.hideWatched && ${countWatched} > 0 ? ' shown; ' + ${countWatched} + ' watched or unavailable videos' : '') +')'"></span>
         </div>
       </template>
+    </td>
+    <td colspan="4">
+      <p style="float:right;"
+        x-text="'Total: '
+                  + (${sumPlaylistCount} - $store.entries.length) + ' of '+ ${sumPlaylistCount} + ' watched ('
+                  + Math.round(((${sumPlaylistCount} - $store.entries.length) / ${sumPlaylistCount})) * 100.0 + '%); '
+                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
+      </p>
     </td>
   </tr>
   <tr>
@@ -228,8 +272,8 @@ window.app = {
   </td>
   <td><span x-text="v.title" :title="v.title"></span></td>
   <td>
-    <input type="checkbox" :checked="v.watched"
-      @click="$el.checked ? app.markVideoWatched(v) : app.markVideoUnwatched(v)">
+    <button @click="v.watched ? app.markVideoUnwatched(v) : app.markVideoWatched(v); app.refreshView()"
+      x-text="v.watched ? 'Mark unwatched' : 'Mark watched'"></button>
   </td>
   <td><span x-text="app.secondsToFriendlyTime(v.duration)"></span></td>
   <td><span x-text="v.uploader"></span></td>
@@ -258,115 +302,15 @@ window.app = {
   ${tableFoot}
 </table>`
   },
-  randimal: function () {
-    return [
-      "🌸",
-      "🐄",
-      "🐉",
-      "🐋",
-      "🐕‍🦺",
-      "🐘",
-      "🐙",
-      "🐠",
-      "🐢",
-      "🐬",
-      "🐳",
-      "🐸",
-      "🐹",
-      "💐",
-      "💮",
-      "🕊️",
-      "🙈",
-      "🙉",
-      "🙊",
-      "🦅",
-      "🦆",
-      "🦈",
-      "🦋",
-      "🦎",
-      "🦐",
-      "🦓",
-      "🦖",
-      "🦗",
-      "🦘",
-      "🦚",
-      "🦜",
-      "🦞",
-      "🦢",
-      "🦧",
-      "🦩",
-    ].random();
-  },
-  onomonopia: function () {
-    // https://youtu.be/tuFRz18rMQk
-    return [
-      "ahem",
-      "ahhh",
-      "arf.",
-      "argh",
-      "arr!",
-      "baa.",
-      "bah.",
-      "bark",
-      "beep",
-      "beoi",
-      "bleh",
-      "blet",
-      "bonk",
-      "boom",
-      "burp",
-      "chir",
-      "chow",
-      "clik",
-      "eaar",
-      "eek!",
-      "eep.",
-      "grol",
-      "grr.",
-      "hewo",
-      "hun.",
-      "kerh",
-      "kroo",
-      "lah.",
-      "loow",
-      "meow",
-      "mew.",
-      "moo.",
-      "oink",
-      "oweh",
-      "phew",
-      "psst",
-      "purr",
-      "rats",
-      "rawr",
-      "roar",
-      "sigh",
-      "slam",
-      "sqak",
-      "ssss",
-      "toot",
-      "tsk.",
-      "ugh.",
-      "umm.",
-      "uuk.",
-      "vrüm",
-      "vwop",
-      "wee.",
-      "woof",
-      "wow~",
-      'yarr',
-      "yip.",
-      "zip.",
-      "zonk",
-      "quak",
-    ].random();
-  }
+  randimal,
+  onomonopia
 }
 
 if (devMode) {
-  await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
+  // await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
 }
 
+app.createDB('Runtime')
 Alpine.start()
 app.refreshView()
 

@@ -1,26 +1,15 @@
-privacy policy UNLI
-
 deploy
-
-don't auto mark seen setting
-
-order by
 
 shuffle mode (end)
 wadsworth constant (start)
 autoplay
-
-details backgrounds
-table backgrounds (a little lighter)
-
 limit shown to n per playlist with option to show all
-
 refresh all subscriptions
 
-multiple databases  # alasql.databases.dbo.databaseid
-# alasql('show databases')
-export/import db
+
+
+Save settings between refresh--Alpine.persist
 
 probably won't implement right away but PR could be merged:
 instant search (ctrl-f works fine until people have more than 5,000 videos or so). With channels like TEDx (over 170,000 videos) this could be useful.
-mark all in search as watched
+mark all within search as watched

@@ -21,11 +21,11 @@ export interface Entree {
     live_status: null,
     release_timestamp: null,
     availability: null,
-    playlist_url: string // "https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F"
+    original_url: string // "https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F"
 }
 
 export interface Playlist {
-    playlist_url: string
+    original_url: string
     duration: number
     entries?: Entree[],
     uploader: "Mejoo and Cats",

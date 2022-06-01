@@ -84,7 +84,6 @@ def fetch_playlist(playlist):
             return None
 
         if playlist_dict.get("entries"):
-            playlist_dict["playlist_url"] = playlist_dict.get("original_url")
             for v in playlist_dict["entries"]:
                 v["channel"] = v.get("channel") or playlist_dict.get("channel")
                 v["channel_id"] = v.get("channel_id") or playlist_dict.get("channel_id")
@@ -96,13 +95,12 @@ def fetch_playlist(playlist):
                 v["uploader_url"] = v.get("uploader_url") or playlist_dict.get("uploader_url")
                 v["view_count"] = v.get("view_count") or playlist_dict.get("view_count")
                 v["playlist_title"] = playlist_dict.get("title")
-                v["playlist_url"] = playlist_dict.get("original_url")
+                v["original_url"] = playlist_dict.get("original_url")
 
         if playlist_dict.get("entries") is None:
             safe_del(playlist_dict, "formats")
             safe_del(playlist_dict, "requested_formats")
             playlist_dict = dict(
-                entries=[playlist_dict],
                 playlist_count=1,
                 availability=playlist_dict.get("availability"),
                 channel=playlist_dict.get("channel"),
@@ -112,6 +110,7 @@ def fetch_playlist(playlist):
                 description=playlist_dict.get("description"),
                 extractor=playlist_dict.get("extractor"),
                 extractor_key=playlist_dict.get("extractor_key"),
+                ie_key=playlist_dict.get("extractor_key"),
                 id=playlist_dict.get("id"),
                 original_url=playlist_dict.get("original_url"),
                 tags=playlist_dict.get("tags"),
@@ -120,11 +119,13 @@ def fetch_playlist(playlist):
                 uploader=playlist_dict.get("uploader"),
                 uploader_id=playlist_dict.get("uploader_id"),
                 uploader_url=playlist_dict.get("uploader_url"),
+                url=playlist_dict.get("webpage_url") or playlist_dict.get("original_url"),
                 view_count=playlist_dict.get("view_count"),
                 webpage_url=playlist_dict.get("webpage_url"),
                 webpage_url_basename=playlist_dict.get("webpage_url_basename"),
                 webpage_url_domain=playlist_dict.get("webpage_url_domain"),
             )
+            playlist_dict = {**playlist_dict, "entries": [playlist_dict]}
 
         # print(playlist_dict)
         cctx = ZstdCompressor(8)

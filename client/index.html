@@ -72,7 +72,7 @@ chapmanjacobd @/t gmail
  </div>
 
  <div id="addNew" x-data="{
-       playlistToAdd: 'https://www.youtube.com/playlist?list=PL9tbKqNeOjUy1J7otU7fex06EFN9TH3F5',
+       playlistToAdd: '',
        async submit($event) {
          addNewInputSubmit.textContent = 'Loading'
          addNewInput.disabled = true
@@ -82,14 +82,23 @@ chapmanjacobd @/t gmail
        }
      }">
   <label for="addNewInput">Add New Playlist or Channel:</label>
-  <input type="text" name="addNewInput" id="addNewInput" x-model="playlistToAdd"
-   placeholder="https://www.youtube.com/playlist?list=PL8A83124F1D79BD4F" @keyup.enter="submit" />
-  <button id="addNewInputSubmit" type="button" @click="submit()">Submit</button>
+  <div id="addNewInputContainer">
+   <input type="text" name="addNewInput" id="addNewInput" x-model="playlistToAdd"
+    placeholder="https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm" @keyup.enter="submit" />
+   <button id="addNewInputSubmit" type="button" @click="submit()">Submit</button>
+  </div>
  </div>
 
  <div x-data>
   <template x-if="$store.playlists.length == 0">
-   <div>Add a playlist or channel URL to get started</div>
+   <div style="text-align: center;min-height: 20em;position: relative;top: 2em;">
+    <h3>
+     Add a playlist or channel URL to get started
+    </h3>
+    <button type="button"
+     @click="app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')">or Load Demo
+     Data ¯\_(ツ)_/¯</button>
+   </div>
   </template>
 
   <template x-if="$store.playlists.length > 0">
@@ -97,119 +106,141 @@ chapmanjacobd @/t gmail
 
     <details>
      <summary>Settings</summary>
+     <div class="columns2">
+      <div id="dials" x-data>
 
-     <div id="dials" x-data>
+       <h4>Display</h4>
 
-      <div>
-       <label for="entriesOrderByList">Order By</label>
-       <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy">
-        <option>Random</option>
-        <option>Uploader</option>
-        <option>Playlist</option>
-        <option>Duration</option>
-        <option>Playlist Count</option>
-        <option>Title</option>
-       </select>
+       <div>
+        <label for="entriesOrderByList">Order By</label>
+        <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy" x-on:change="app.refreshView">
+         <option value="random()">Random</option>
+         <option value="uploader">Uploader</option>
+         <option value="original_url">Playlist</option>
+         <option value="duration">Duration</option>
+         <option value="playlist_count">Playlist Count</option>
+         <option value="title">Title</option>
+        </select>
+       </div>
+
+       <div>
+        <label for="entriesLimitList">Max videos shown per playlist</label>
+        <select id="entriesLimitList" x-model="$store.sett.entriesLimit">
+         <option value="">No Limit</option>
+         <option>1</option>
+         <option>5</option>
+         <option>10</option>
+         <option>50</option>
+         <option>100</option>
+         <option>500</option>
+         <option>1000</option>
+         <option>5000</option>
+        </select>
+       </div>
+
+       <div @click="$nextTick(() => { app.refreshView() });">
+        <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
+        <label for="hideWatched">Hide Watched</label>
+       </div>
+
+       <div>
+        <input type="checkbox" id="compact" x-model="$store.sett.compact">
+        <label for="compact">Compact UI</label>
+       </div>
+
+       <div>
+        <button type="button" @click="app.changeTheBackgroundColor">🪅 Change the background colour 🪅</button>
+       </div>
+
+       <h4>Behavior</h4>
+
+       <div>
+        <input type="checkbox" id="automarkInput" x-model="$store.sett.automark">
+        <label for="automarkInput">Auto-mark played videos as watched</label>
+       </div>
+
+       <div>
+        <button type="button" @click="app.refreshPlaylists">Refresh Playlists (delayed by 3 days)</button>
+       </div>
+
+       <h4>Download</h4>
+       <div>
+        <button type="button" @click="app.exportDB()">Export Database</button>
+       </div>
+
+       <div>
+        <button type="button" @click="app.exportCSVEntries">Download Videos CSV</button>
+       </div>
+       <div>
+        <button type="button" @click="app.exportCSVPlaylists">Download Playlists CSV</button>
+       </div>
+
+       <h4>Database</h4>
+
+       <div id="newDB" x-data="{
+        newdbname: '',
+        async submit($event) {
+          app.createDB(this.newdbname)
+          newDBInput.value = ''
+        }
+      }">
+        <label for="newDBInput">Create New DB</label>
+        <div id="newDBInputContainer">
+         <input type="text" name="newDBInput" id="newDBInput" x-model="newdbname" placeholder="my_db"
+          @keyup.enter="submit" />
+         <button id="newDBInputSubmit" type="button" @click="submit()">Create</button>
+        </div>
+       </div>
+
+       <div id="dbSelector" x-data="{
+        selectedDB: 'RuntimeDB',
+        dbs: Object.keys(alasql.databases).filter(x=>!['dbo','alasql'].includes(x))
+        }">
+        <label for="switchDBInput">Switch DB</label>
+        <select id="switchDBInput" x-model="selectedDB" x-on:change="app.switchDB(selectedDB)">
+         <template x-for="db in dbs">
+          <option x-text="db"></option>
+         </template>
+        </select>
+       </div>
+
+       <div id="importDBInput">
+        <label for="importDBFile">Import DB</label>
+        <input id="importDBFile" type="file" onchange="app.importDB(event)" />
+       </div>
+
+      </div>
+     </div>
+
+     <details>
+      <summary>Advanced Settings</summary>
+      <div class="advSettings">
+       <button type="button" @click="app.refreshView">Refresh UI</button>
       </div>
 
-      <div>
-       <label for="entriesLimitList">Max videos shown per playlist</label>
-       <select id="entriesLimitList" x-model="$store.sett.entriesLimit">
-        <option value="">No Limit</option>
-        <option>1</option>
-        <option>5</option>
-        <option>10</option>
-        <option>50</option>
-        <option>100</option>
-        <option>500</option>
-        <option>1000</option>
-        <option>5000</option>
-       </select>
-      </div>
-
-      <div>
-       <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
-       <label for="hideWatched">Hide Watched</label>
-      </div>
-
-      <div>
-       <input type="checkbox" id="compact" x-model="$store.sett.compact">
-       <label for="compact">Compact UI</label>
-      </div>
-
-      <div>
+      <div class="advSettings">
        <button type="button" @click="alasql('delete from playlists;delete from entries;');app.refreshView()">⚠️ Delete
         All
         Playlists/Videos ⚠️</button>
       </div>
 
-      <div>
-       <button type="button" @click="app.refreshPlaylists">Refresh Playlists (delayed by 3 days)</button>
+      <div class="advSettings">
+       <button type="button" @click="alasql('delete from watched')">❗☠️ Delete All Watched 💣</button>
+       <span>If you don't know what this does I recommend exporting the database before clicking. There should be no
+        reason to click this. If you add playlists which reference the videos you've already
+        seen
+        they will be hidden for you--unless you click this button.</span>
       </div>
-      <div>
-       <button type="button" @click="app.refreshView">Refresh UI</button>
-      </div>
+     </details>
 
-      <details>
-       <summary>Advanced Settings</summary>
-       <div>
-        <button type="button" @click="app.changeTheBackgroundColor">Change the background colour</button>
-       </div>
-       <div>
-        <button type="button" @click="alasql('delete from watched')">❗☠️ Delete All Watched 💣</button>
-        <span>There is not reason to run this. If you add playlists which have the same videos you'll see the same
-         videos instead of those already being hidden for you </span>
-       </div>
-      </details>
-
-     </div>
     </details>
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
      <div x-html="app.renderPlaylists()"></div>
     </div>
 
-    <div xdata id='fun' style="display: flex;">
-     <div>
-      <button type="button"
-       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">Play
-       Random 🎲</button>
-     </div>
-
-     <div>
-      <button type="button"
-       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">
-       Autoplay 🤖</button>
-     </div>
-
-     <div
-      title="an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information">
-      <button type="button"
-       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">
-       Wadsworth Constant ⏩</button>
-     </div>
-
-     <div title="goes to the next video after n seconds">
-      <select x-model="$store.sett.shuffleMode">
-       <option value="" disabled>Shuffle Mode</option>
-       <option value="0">No shuffle</option>
-       <option>20</option>
-       <option>30</option>
-       <option>40</option>
-       <option>50</option>
-       <option>60</option>
-       <option>70</option>
-       <option>80</option>
-       <option>90</option>
-       <option>100</option>
-       <option>1000</option>
-      </select>
-     </div>
-
-    </div>
-
     <details>
-     <summary>I feel like something is broken</summary>
+     <summary>Frequently Asked Questions (FAQ)</summary>
 
      <h6>Why does it say I've already watched a video?</h6>
      <p>Unavailable videos are marked as watched when importing playlist data. They are counted as watched so you don't
@@ -233,6 +264,44 @@ chapmanjacobd @/t gmail
      <p>You can submit a bug report here <a href="https://github.com/chapmanjacobd/lb-lite/issues/new">here</a>.</p>
     </details>
 
+
+    <div xdata id='fun' style="display: flex;">
+     <div>
+      <button type="button"
+       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">Play
+       Random 🎲</button>
+     </div>
+
+     <div>
+      <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button" @click="">
+       Autoplay 🤖</button>
+     </div>
+
+     <div
+      title="an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information">
+      <button :style="$store.sett.wadsworth ? 'background-color: #dcafb5;' : ''" type="button" @click="">
+       Wadsworth Constant ⏩</button>
+     </div>
+
+     <div title="goes to the next video after n seconds">
+      <select x-model="$store.sett.shuffleMode">
+       <option value="" disabled>Shuffle Mode 🔀</option>
+       <option value="0">No shuffle</option>
+       <option>20</option>
+       <option>30</option>
+       <option>40</option>
+       <option>50</option>
+       <option>60</option>
+       <option>70</option>
+       <option>80</option>
+       <option>90</option>
+       <option>100</option>
+       <option>1000</option>
+      </select>
+     </div>
+
+    </div>
+
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
      <div x-html="app.renderEntrees()"></div>
     </div>
@@ -242,6 +311,7 @@ chapmanjacobd @/t gmail
  </div>
 
  <div x-data id="footer">
+  <span x-text="'Using ' + alasql.databases.dbo.databaseid"></span>
   <span style="float: right;">
    <span x-text="app.onomonopia() + ' '" style="font-size: small; font-weight: 500; font-style: italic;"
     title="web decor 🕸️ (this doesn't do anything)"></span>

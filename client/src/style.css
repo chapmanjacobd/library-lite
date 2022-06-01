@@ -3,6 +3,9 @@
   contain-intrinsic-size: 1px 5000px;
 }
 
+label {
+  margin-right: 0.4em;
+}
 
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -23,10 +26,16 @@ h6 {
   padding: 0;
 }
 
-#addNew {
+#addNewInputContainer,
+#newDBInputContainer {
   display: flex;
-  align-items: center;
-  margin: 0.5em;
+}
+
+#importDBInput {
+  display: flex;
+  white-space: nowrap;
+  align-content: center;
+  justify-content: center;
 }
 
 #addNew>label {
@@ -37,15 +46,28 @@ h6 {
   margin-right: 0.8em;
 }
 
-#dials {
-  display: flex;
-  flex-direction: column;
+@media only screen and (min-width: 768px) {
+  .columns2 {
+    columns: 2;
+  }
 }
+
+#dials {
+  display: grid;
+}
+
+.advSettings {
+  margin: .6em 0;
+}
+
+#dials>* {
+  margin: .2em;
+}
+
 
 tr td {
   text-overflow: ellipsis;
   max-width: 30em;
-  white-space: nowrap;
   overflow: hidden;
 }
 
@@ -61,4 +83,21 @@ table td:first-child,
 table th:first-child {
   background-image: unset;
   padding: 0.35em 0.75em;
+}
+
+table,
+details[open] {
+  background: antiquewhite;
+}
+
+details {
+  padding: 0.35em 0.75em;
+}
+
+details[open] {
+  padding: 0.35em 0.75em;
+}
+
+h6 {
+  color: #ca162e;
 }
