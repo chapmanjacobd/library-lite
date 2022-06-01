@@ -65,7 +65,20 @@ window.app = {
         app.refreshView()
       })
   },
-  view: {},
+  automaticPlay: function () {
+    const timer = (s: number) => new Promise(res => setTimeout(res, s * 1000))
+
+    async function run() {
+      for (let v of Alpine.store('entries')) {
+        if (Alpine.store('sett').autoplay) {
+          Alpine.store('sett').selectedVideo = v
+          await timer(v.duration);
+        }
+      }
+    }
+
+    run();
+  },
   refreshView: function () {
     let constraints: string[] = []
     if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')

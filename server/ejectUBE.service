@@ -1,0 +1,14 @@
+[Unit]
+Description=UNLI ejectUBE API
+After=multi-user.target
+
+[Service]
+Restart=always
+RestartSec=30
+Group=nginx
+WorkingDirectory=/home/production/admin/github/lb-lite/server/
+Environment="PATH=/home/production/admin/.local/share/virtualenvs/server-Hk67PCZV/bin"
+ExecStart=/home/production/admin/.local/share/virtualenvs/server-Hk67PCZV/bin/gunicorn server:app --worker-class uvicorn.workers.UvicornWorker --workers 1 --bind unix:/run/ejectUBE.sock -m 007
+
+[Install]
+WantedBy=multi-user.target

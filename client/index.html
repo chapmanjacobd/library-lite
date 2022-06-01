@@ -96,7 +96,8 @@ chapmanjacobd @/t gmail
      Add a playlist or channel URL to get started
     </h3>
     <button type="button"
-     @click="app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')">or Load Demo
+     @click="$store.autoplay=true;app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')">or
+     Load Demo
      Data ¯\_(ツ)_/¯</button>
    </div>
   </template>
@@ -273,7 +274,8 @@ chapmanjacobd @/t gmail
      </div>
 
      <div>
-      <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button" @click="">
+      <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button"
+       @click="$store.sett.autoplay=!$store.sett.autoplay;app.automaticPlay()">
        Autoplay 🤖</button>
      </div>
 
