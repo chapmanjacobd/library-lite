@@ -52,7 +52,10 @@ window.app = {
 
         alasql('DELETE from entries where original_url = ?', data.entries![0].original_url)
         alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
-        alasql('INSERT INTO watched (ie_key, id) SELECT ie_key, id FROM entries where title in (?)', ["[Deleted video]", "[Private video]"])
+        alasql(`INSERT INTO watched (ie_key, id)
+          SELECT ie_key, id FROM entries
+          where title in (?)', [["[Deleted video]", "[Private video]"]]
+        `)
 
         delete data.entries
         alasql('DELETE from playlists where webpage_url = ?', data.webpage_url)
