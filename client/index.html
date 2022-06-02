@@ -9,6 +9,11 @@
  <link rel="manifest" href="/site.webmanifest">
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
  <link rel="stylesheet" type="text/css" href="https://unli.xyz/awsm_theme_pearl-lusta.css" media="all">
+ <meta property="og:title" content="Ejectube: Escape the algorithm">
+ <meta property="og:type" content="article" />
+ <meta property="og:image" content="/preview.png">
+ <meta property="og:url" content="https://www.unli.xyz/eject/">
+ <meta name="twitter:card" content="summary_large_image">
 
  <title>Ejectube</title>
  <meta name="description" content="Escape the algorithm">
@@ -62,13 +67,15 @@ chapmanjacobd @/t gmail
  <script type="module" src="/src/main.ts"></script>
  <details>
   <summary>
-   <span style="font-size: larger;">⏏️</span>
-   <h1 title="pronounced eject ube 🍠" style="letter-spacing: 0.4rem;">🇺🅱️🇪</h1>
+   <div style="display: inline-flex; width: 100%;">
+    <img src="https://unli.xyz/unli.png" alt="UNLI" width="60" height="60" />
+    <img src="./eject.png" alt="eject UBE 🍠" width="60" height="60" />
+   </div>
   </summary>
   <div> Escape the algorithm that <span title="sites">other tubes</span> impose on you</div>
  </details>
 
- <div x-data x-show="$store.sett.selectedVideo.ie_key != ''">
+ <div x-data x-show="!!Alpine.store('sett').selectedVideo.ie_key">
   <div x-html="app.renderVideo($store.sett.selectedVideo)"></div>
  </div>
 
@@ -97,7 +104,7 @@ chapmanjacobd @/t gmail
      Add a playlist or channel URL to get started
     </h3>
     <button type="button"
-     @click="$store.autoplay=true;app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')">or
+     @click="$store.sett.autoplay=true;Math.random() > 0.5 ? app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm') : app.fetchPlaylist('https://www.youtube.com/gags/videos/')">or
      Load Demo
      Data ¯\_(ツ)_/¯</button>
    </div>
@@ -181,7 +188,7 @@ chapmanjacobd @/t gmail
 
        <div id="newDB" x-data="{
         newdbname: '',
-        async submit($event) {
+        submit($event) {
           app.createDB(this.newdbname)
           newDBInput.value = ''
         }
@@ -194,13 +201,14 @@ chapmanjacobd @/t gmail
         </div>
        </div>
 
-       <div id="dbSelector" x-data="{
-        selectedDB: 'RuntimeDB',
-        dbs: Object.keys(alasql.databases).filter(x=>!['dbo','alasql'].includes(x))
-        }">
+       <div class="advSettings">
+        <button type="button" @click="app.deleteDB()" x-text="`Delete ${alasql.databases.dbo.databaseid} 💣`"></button>
+       </div>
+
+       <div id="dbSelector" x-data>
         <label for="switchDBInput">Switch DB</label>
-        <select id="switchDBInput" x-model="selectedDB" x-on:change="app.switchDB(selectedDB)">
-         <template x-for="db in dbs">
+        <select id="switchDBInput" x-model="$store.sett.selectedDB" x-on:change="app.switchDB($store.sett.selectedDB)">
+         <template x-for="db in Object.keys(alasql.databases).filter(x=>!['dbo','alasql'].includes(x))">
           <option x-text="db"></option>
          </template>
         </select>
@@ -221,19 +229,23 @@ chapmanjacobd @/t gmail
       </div>
 
       <div class="advSettings">
-       <button type="button" @click="alasql('delete from playlists;delete from entries;');app.refreshView()">⚠️ Delete
+       <button type="button" @click="alasql('delete from playlists;delete from entries;');app.refreshView()">⚠️
+        Delete
         All
         Playlists/Videos ⚠️</button>
       </div>
 
       <div class="advSettings">
-       <button type="button" @click="alasql('delete from watched')">❗☠️ Delete All Watched 💣</button>
-       <span>If you don't know what this does I recommend exporting the database before clicking. There should be no
-        reason to click this. If you add playlists which reference the videos you've already
+       <button type="button" @click="alasql('delete from watched')">❗☠️ Delete All Watched
+        💣</button>
+       <span>Recommend exporting your database before clicking. If you add playlists which reference the videos you've
+        already
         seen
         they will be hidden for you--unless you click this button.</span>
       </div>
      </details>
+
+
 
     </details>
 
@@ -245,12 +257,14 @@ chapmanjacobd @/t gmail
      <summary>Frequently Asked Questions (FAQ)</summary>
 
      <h6>Why does it say I've already watched a video?</h6>
-     <p>Unavailable videos are marked as watched when importing playlist data. They are counted as watched so you don't
+     <p>Unavailable videos are marked as watched when importing playlist data. They are counted as watched so you
+      don't
       have to
       see them. If you want to see them just go to settings and uncheck "Hide watched videos" :)</p>
 
      <h6>Where did my playlist go?</h6>
-     <p>Playlists without any unwatched videos will be hidden until new unwatched videos are available. Try clicking
+     <p>Playlists without any unwatched videos will be hidden until new unwatched videos are available. Try
+      clicking
       "Refresh Playlists" in the settings. This might take up to
       <code>(20 seconds * the number of playlists you have)</code>
      </p>
@@ -258,8 +272,11 @@ chapmanjacobd @/t gmail
      <h6>Why are playlists limited to 2000 videos?</h6>
      <p>Unfortunetly, YouTube only wants us to request ~100 videos/second so to provide a snappy user experience we
       limit the playlist history to the most recent 2,000 videos. If YouTube ever provides a bulk API for this
-      metadata--to aid long-tail video discovery--we will definitely raise this limit--but for now it would take 5 hours
-      to scan the full TEDx channel. Not great. If, however, there is a userbase for it I can write a CLI tool that
+      metadata--to aid long-tail video discovery--we will definitely raise this limit--but for now it would take 5
+      hours
+      to scan the full ~180,000 video TEDx channel. Not great. If, however, there is a userbase for it I can write
+      a CLI
+      tool that
       would save a file with the full history to import into this website.</p>
 
      <h6>Something else seems wrong</h6>
@@ -270,19 +287,14 @@ chapmanjacobd @/t gmail
     <div xdata id='fun' style="display: flex;">
      <div>
       <button type="button"
-       @click="$store.sett.selectedVideo = alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0]">Play
+       @click="$store.sett.autoplay=false; app.playVideo(alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0])">Play
        Random 🎲</button>
-     </div>
-
-     <div>
-      <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button"
-       @click="$store.sett.autoplay=!$store.sett.autoplay;app.automaticPlay()">
-       Autoplay 🤖</button>
      </div>
 
      <div
       title="an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information">
-      <button :style="$store.sett.wadsworth ? 'background-color: #dcafb5;' : ''" type="button" @click="">
+      <button :style="$store.sett.wadsworth ? 'background-color: #dcafb5;' : ''" type="button"
+       @click="$store.sett.wadsworth=!$store.sett.wadsworth">
        Wadsworth Constant ⏩</button>
      </div>
 
@@ -290,17 +302,23 @@ chapmanjacobd @/t gmail
       <select x-model="$store.sett.shuffleMode">
        <option value="" disabled>Shuffle Mode 🔀</option>
        <option value="0">No shuffle</option>
-       <option>20</option>
-       <option>30</option>
-       <option>40</option>
-       <option>50</option>
-       <option>60</option>
-       <option>70</option>
-       <option>80</option>
-       <option>90</option>
-       <option>100</option>
-       <option>1000</option>
+       <option value="20">20 seconds</option>
+       <option value="30">30 seconds</option>
+       <option value="40">40 seconds</option>
+       <option value="50">50 seconds</option>
+       <option value="60">60 seconds</option>
+       <option value="70">70 seconds</option>
+       <option value="80">80 seconds</option>
+       <option value="90">90 seconds</option>
+       <option value="100">100 seconds</option>
+       <option value="1000">1000 seconds</option>
       </select>
+     </div>
+
+     <div>
+      <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button"
+       @click="$store.sett.autoplay=!$store.sett.autoplay;app.automaticPlay()">
+       Autoplay 🤖</button>
      </div>
 
     </div>
@@ -314,7 +332,7 @@ chapmanjacobd @/t gmail
  </div>
 
  <div x-data id="footer">
-  <span x-text="'Using ' + alasql.databases.dbo.databaseid"></span>
+  <span x-text="'Using ' + $store.sett.selectedDB"></span>
   <span style="float: right;">
    <span x-text="app.onomonopia() + ' '" style="font-size: small; font-weight: 500; font-style: italic;"
     title="web decor 🕸️ (this doesn't do anything)"></span>

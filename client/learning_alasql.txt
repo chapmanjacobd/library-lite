@@ -19,9 +19,9 @@ alasql('VALUE OF SELECT socketId FROM nodeTracker WHERE arrlen(leechers) < 3 and
 
 alasql('SELECT * FROM City WHERE EXIST(SELECT * FROM Capital WHERE City.Name = Capital.Name)');
 
-alasql('SEARCH /entries/ from videos')
+alasql('SEARCH /entries/ from entries')
 
-alasql('select columns entries from videos').flatMap(x=>x).filter(x=>!alasql('select column id from watched').includes(x.id))
+alasql('select columns entries from entries').flatMap(x=>x).filter(x=>!alasql('select column id from watched').includes(x.id))
 
 // group by return nested object https://github.com/AlaSQL/alasql/wiki/How-to-add-own-keys-for-grouped-output
 alasql('SELECT color, ARRAY(_) AS users FROM ? GROUP BY color',[data]);

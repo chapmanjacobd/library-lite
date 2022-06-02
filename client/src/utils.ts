@@ -2,8 +2,8 @@ export function html(...args: [string | TemplateStringsArray]) {
     return args
 }
 
-Array.prototype.random = function () {
-    return this[Math.floor(Math.random() * this.length)];
+function shuffle(lst): string | any[] {
+    return lst[Math.floor(Math.random() * lst.length)];
 };
 
 
@@ -50,7 +50,7 @@ export async function fileToJSON(event: Event): Promise<object> {
     })
 }
 export function randimal() {
-    return [
+    return shuffle([
         "🌸",
         "🐄",
         "🐉",
@@ -86,11 +86,11 @@ export function randimal() {
         "🦢",
         "🦧",
         "🦩",
-    ].random();
+    ]);
 }
 export function onomonopia() {
     // https://youtu.be/tuFRz18rMQk
-    return [
+    return shuffle([
         "ahem",
         "ahhh",
         "arf.",
@@ -150,5 +150,5 @@ export function onomonopia() {
         "zip.",
         "zonk",
         "quak",
-    ].random();
+    ]);
 }

@@ -30,7 +30,8 @@ Alpine.store('sett', {
   hideWatched: true,
   entriesOrderBy: 'random()',
   entriesLimit: '', compact: true, selectedVideo: {},
-  automark: true, autoplay: false, wadsworth: false
+  automark: true, autoplay: false, wadsworth: false, shuffleMode: "",
+  selectedDB: 'RuntimeDB'
 })
 
 window.app = {
@@ -38,43 +39,66 @@ window.app = {
   fetchPlaylist: async function (playlist: string) {
     if (playlist.length < 5) return;
 
-    await fetch(`${API_domain}?playlist=` + playlist)
+    const data = await fetch(`${API_domain}?playlist=` + playlist)
       .then(response => response.json())
       .then((data: Playlist) => {
-        // alasql('ATTACH localStorage DATABASE RuntimeDB')
-        // alasql('SET AUTOCOMMIT ON')
-
-        // data.original_url = playlist
-        // data.entries = data.entries!.map((x) => ({
-        //   ...x, original_url: playlist
-        // }));
-        // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
-
-        alasql('DELETE from entries where original_url = ?', data.entries![0].original_url)
-        alasql('INSERT INTO entries SELECT * FROM ?', [data.entries])
-        alasql(`SELECT ie_key, id INTO watched FROM entries
-          where title in (select _ from ?)`, [["[Deleted video]", "[Private video]"]]
-        )
-
-        delete data.entries
-        alasql('DELETE from playlists where webpage_url = ?', data.webpage_url)
-        alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
-
-        app.cleanUpDuplicates('watched')
-        addNewInput.disabled = false
-        window.addNewInputSubmit.textContent = 'Submit'
-        window.addNewInputSubmit.disabled = false
-        app.refreshView()
+        return data
       })
+
+    // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
+
+    if ((alasql('select count(*) from entries')) > 0)
+      alasql('DELETE from entries where original_url = ?', data.entries![0].original_url)
+
+    alasql('SELECT * INTO entries FROM ?', [data.entries]);
+
+    alasql(`SELECT ie_key, id INTO watched from entries
+          where title in (select _ from ?)`, [["[Deleted video]", "[Private video]"]]
+    )
+
+    delete data.entries
+    alasql('DELETE from playlists where webpage_url = ?', data.webpage_url)
+    alasql('INSERT INTO playlists SELECT * FROM ?', [[data]])
+
+    app.cleanUpDuplicates('watched')
+
+    // alasql('create index entries_id_idx on entries (id)')
+    // alasql('create index entries_iekey_id_idx on entries (ie_key,id)')
+
+    addNewInput.disabled = false
+    window.addNewInputSubmit.textContent = 'Submit'
+    window.addNewInputSubmit.disabled = false
+    app.refreshView()
+  },
+  timeshift: function (videos: Entree[]): Entree[] {
+    if (videos[0].start) return videos;
+
+    const is_wadsworth = Alpine.store('sett').wadsworth
+    const is_shuffle = Alpine.store('sett').shuffleMode > 0
+
+    return videos.map(v => {
+      let start = 0
+      let end = v.duration
+
+      if (is_wadsworth) start = Math.round(end * 0.3)
+      if (is_shuffle) end = start + Number(Alpine.store('sett').shuffleMode)
+
+      const newDuration = end - start
+      return { ...v, duration: newDuration, start, end }
+    })
+  },
+  playVideo: function (v: Entree) {
+    Alpine.store('sett').selectedVideo = app.timeshift([v])[0]
+    Alpine.nextTick(() => { app.refreshView() })
   },
   automaticPlay: function () {
     const timer = (s: number) => new Promise(res => setTimeout(res, s * 1000))
 
     async function run() {
-      for (let v of Alpine.store('entries')) {
+      for (let v of app.timeshift(Alpine.store('entries'))) {
         if (Alpine.store('sett').autoplay) {
-          Alpine.store('sett').selectedVideo = v
-          await timer(v.duration);
+          app.playVideo(v)
+          await timer(v.duration)
         }
       }
     }
@@ -87,6 +111,11 @@ window.app = {
 
     const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
+
+    if (!alasql.tables.entries.data) return;
+
+    // const entriesColumns = Object.keys(alasql.tables.entries.data[0]).join(',')
+    // create view v_entries(${ entriesColumns }, watched) as
 
     let entriesSQL = `select entries.*
         , watched.id IS NOT NULL as watched
@@ -134,24 +163,32 @@ window.app = {
   },
   createDB: function (dbname: string) {
     dbname = dbname + 'DB'
-    alasql(`CREATE localStorage DATABASE IF NOT EXISTS ${dbname}`)
-    alasql(`ATTACH localStorage DATABASE ${dbname}`)
-    // if (!devMode)
+
+    alasql(`CREATE localstorage DATABASE IF NOT EXISTS ${dbname}`)
+    alasql(`ATTACH localstorage DATABASE ${dbname}`)
     alasql(`USE ${dbname}`)
     alasql('SET AUTOCOMMIT ON')
-    alasql('CREATE TABLE IF NOT EXISTS playlists');
+
     alasql('CREATE TABLE IF NOT EXISTS entries');
+    alasql('CREATE TABLE IF NOT EXISTS playlists');
     alasql('CREATE TABLE IF NOT EXISTS watched');
   },
   switchDB: function (dbname: string) {
     const oldDB = alasql.databases.dbo.databaseid
     alasql(`DETACH DATABASE ${oldDB}`)
-    alasql(`ATTACH localStorage DATABASE ${dbname}`)
+    alasql(`ATTACH localstorage DATABASE ${dbname}`)
     app.refreshView()
   },
   importDB: async function (event: Event) {
+    const newdbname = event.target.files[0].name.split('.')[0].replace('(', '_').replace(')', '')
+
+    if (Object.keys(alasql.databases).includes(newdbname))
+      throw new Error("New DB has the same name as existing. Delete existing DB first or rename the file");
+
+    app.createDB(newdbname)
     let data = await fileToJSON(event)
-    if (data.playlists || data.watched) alasql.tables = data
+    alasql.tables = data;
+    app.refreshView()
   },
   exportDB: function (dbname: string = alasql.databases.dbo.databaseid) {
     downloadObjectAsJson(alasql.tables, dbname)
@@ -161,7 +198,7 @@ window.app = {
     alasql('drop table playlists')
     alasql(`DETACH database ${dbname}`)
     alasql(`drop localstorage database ${dbname}`)
-    app.refreshView()
+    location.reload()
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
     return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
@@ -182,12 +219,13 @@ window.app = {
     function wrapPlayer(player: string) {
       return `<div style="height:50vh">${player}</div>`
     }
-    let player = ''
-    if (v.ie_key == 'Youtube') player = wrapPlayer(youtube(v.id))
-    if (v.ie_key == 'Vimeo') player = wrapPlayer(vimeo(v.id))
+    let rhtml = ''
+    if (v.ie_key == 'Youtube') rhtml = wrapPlayer(youtube(v))
+    if (v.ie_key == 'Vimeo') rhtml = wrapPlayer(vimeo(v))
 
-    if (player !== '') app.markVideoWatched(v)
-    return player
+    if (rhtml !== '') app.markVideoWatched(v)
+
+    return rhtml
   },
   renderPlaylists: function () {
     const countWatched = alasql('select value count(distinct original_url) from entries where id in (select id from watched)')
@@ -319,13 +357,14 @@ window.app = {
   },
   randimal,
   onomonopia
-}
-
-if (devMode) {
-  // await app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
-}
+};
 
 app.createDB('Runtime')
+
+if (devMode) {
+  // app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
+}
+
 Alpine.start()
 app.refreshView()
 

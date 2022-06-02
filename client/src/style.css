@@ -40,6 +40,7 @@ h6 {
 
 #addNew>label {
   font-size: 0.9rem;
+  text-shadow: 1px 1px antiquewhite;
 }
 
 #addNewInput {
@@ -90,8 +91,15 @@ details[open] {
   background: antiquewhite;
 }
 
+button {
+  height: unset;
+  min-height: 2em;
+}
+
 details {
   padding: 0.35em 0.75em;
+  background: antiquewhite;
+  width: fit-content;
 }
 
 details[open] {
