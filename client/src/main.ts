@@ -308,7 +308,7 @@ window.app = {
           <span
             x-text="'Videos ('+
               $store.entries.length + ($store.sett.hideWatched && (${countEntriesWatched} > 0)
-              ? ' shown; ' + ${countEntriesWatched} + ' watched or unavailable videos'
+              ? '; ' + ${countEntriesWatched} + ' watched or unavailable videos'
               : '') +')'
           "></span>
         </div>
