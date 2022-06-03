@@ -79,62 +79,65 @@ chapmanjacobd @/t gmail
   <div x-html="app.renderVideo($store.sett.selectedVideo)"></div>
  </div>
 
- <template x-if="$store.playlists.length > 0">
+ <div xdata>
 
-  <div xdata id='fun' style="display: flex;">
+  <template x-if="$store.playlists.length > 0">
 
-   <div>
-    <button type="button" @click="app.playRandom()">Play Random 🎲</button>
+   <div id='fun' style="display: flex;">
+
+    <div>
+     <button type="button" @click="app.playRandom()">Play Random 🎲</button>
+    </div>
+
+    <div
+     title="an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information">
+     <button :style="$store.sett.wadsworth ? 'background-color: #dcafb5;' : ''" type="button"
+      @click="$store.sett.wadsworth=!$store.sett.wadsworth">
+      Wadsworth Constant ⏩</button>
+    </div>
+
+    <div title="goes to the next video after n seconds">
+     <select x-model="$store.sett.shuffleMode">
+      <option value="" disabled>Shuffle Mode 🔀</option>
+      <option value="0">No shuffle</option>
+      <option value="20">20 seconds</option>
+      <option value="30">30 seconds</option>
+      <option value="40">40 seconds</option>
+      <option value="50">50 seconds</option>
+      <option value="60">60 seconds</option>
+      <option value="70">70 seconds</option>
+      <option value="80">80 seconds</option>
+      <option value="90">90 seconds</option>
+      <option value="100">100 seconds</option>
+      <option value="1000">1000 seconds</option>
+     </select>
+    </div>
+
+    <div>
+     <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button"
+      @click="$store.sett.autoplay=!$store.sett.autoplay;app.automaticPlay()">
+      Autoplay 🤖</button>
+    </div>
+
    </div>
 
-   <div
-    title="an axiom which states that the first 30% of any video can be skipped because it contains no worthwhile or interesting information">
-    <button :style="$store.sett.wadsworth ? 'background-color: #dcafb5;' : ''" type="button"
-     @click="$store.sett.wadsworth=!$store.sett.wadsworth">
-     Wadsworth Constant ⏩</button>
-   </div>
-
-   <div title="goes to the next video after n seconds">
-    <select x-model="$store.sett.shuffleMode">
-     <option value="" disabled>Shuffle Mode 🔀</option>
-     <option value="0">No shuffle</option>
-     <option value="20">20 seconds</option>
-     <option value="30">30 seconds</option>
-     <option value="40">40 seconds</option>
-     <option value="50">50 seconds</option>
-     <option value="60">60 seconds</option>
-     <option value="70">70 seconds</option>
-     <option value="80">80 seconds</option>
-     <option value="90">90 seconds</option>
-     <option value="100">100 seconds</option>
-     <option value="1000">1000 seconds</option>
+   <div x-data style="margin: 1em 0;">
+    <label for="entriesOrderByList">Order By</label>
+    <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy" x-on:change="app.refreshView">
+     <option value="random()">Random</option>
+     <option value="duration">Duration, Short</option>
+     <option value="duration desc">Duration, Long</option>
+     <option value="uploader">Uploader, A-Z</option>
+     <option value="uploader desc">Uploader, Z-A</option>
+     <option value="title">Title, A-Z</option>
+     <option value="title desc">Title, Z-A</option>
+     <option value="original_url">Playlist</option>
+     <option value="playlist_count">Playlist Count</option>
     </select>
    </div>
 
-   <div>
-    <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button"
-     @click="$store.sett.autoplay=!$store.sett.autoplay;app.automaticPlay()">
-     Autoplay 🤖</button>
-   </div>
-
-  </div>
-
-  <div x-data style="margin: 1em 0;">
-   <label for="entriesOrderByList">Order By</label>
-   <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy" x-on:change="app.refreshView">
-    <option value="random()">Random</option>
-    <option value="duration">Duration, Short</option>
-    <option value="duration desc">Duration, Long</option>
-    <option value="uploader">Uploader, A-Z</option>
-    <option value="uploader desc">Uploader, Z-A</option>
-    <option value="title">Title, A-Z</option>
-    <option value="title desc">Title, Z-A</option>
-    <option value="original_url">Playlist</option>
-    <option value="playlist_count">Playlist Count</option>
-   </select>
-  </div>
- </template>
-
+  </template>
+ </div>
 
 
  <div id="addNew" x-data="{
