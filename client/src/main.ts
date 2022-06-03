@@ -6,7 +6,7 @@ import { vimeo, youtube } from './players';
 import './style.css';
 import { fullstory } from './tracking';
 import { Entree, Playlist } from './types';
-import { downloadObjectAsJson, fileToJSON, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime } from './utils';
+import { downloadObjectAsJson, fileToJSON, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime, shuffle } from './utils';
 
 const devMode = window.location.hostname == 'localhost';
 
@@ -201,7 +201,8 @@ window.app = {
   playRandom: function () {
     if (Alpine.store('sett').autoplay)
       app.stopAutomaticPlay();
-    app.playVideo(alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0])
+    const v = shuffle(Alpine.store('entries'))
+    app.playVideo(v)
   },
   exportCSVPlaylists: function () {
     alasql("SELECT * INTO CSV('playlists.csv',{headers:true}) FROM ?", [Alpine.store('playlists')])
