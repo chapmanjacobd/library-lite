@@ -97,6 +97,11 @@ chapmanjacobd @/t gmail
   </div>
  </div>
 
+ <details :open="$store.playlists.length == 0" style="width: auto;">
+  <summary>Event Log</summary>
+  <textarea id="log" cols="80" rows="20" style="min-height: 8em;"></textarea>
+ </details>
+
  <div x-data="{isLoading:false}">
   <template x-if="$store.playlists.length == 0">
    <div style="text-align: center;min-height: 20em;position: relative;top: 2em;">
@@ -278,7 +283,7 @@ chapmanjacobd @/t gmail
     <div xdata id='fun' style="display: flex;">
      <div>
       <button type="button"
-       @click="$store.sett.autoplay=false; app.playVideo(alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0])">Play
+       @click="app.stopAutomaticPlay(); app.playVideo(alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0])">Play
        Random 🎲</button>
      </div>
 
