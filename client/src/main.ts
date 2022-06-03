@@ -209,12 +209,22 @@ window.app = {
     return rhtml
   },
   renderPlaylists: function () {
+
+    const countWatched = `alasql('select value count(distinct id) from watched')`
+    const countTotal = `alasql('select value count(distinct id) from entries')`
+
     const tableHead = `<thead>
   <tr>
-    <td colspan="100">
+    <td colspan="2">
         <div>
           <span>Playlists</span>
         </div>
+    </td>
+    <td colspan="2">
+      <p style="float:right;"
+        x-text="'All playlists: '
+                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
+      </p>
     </td>
   </tr>
   <tr>
@@ -262,8 +272,8 @@ window.app = {
 </table>`
   },
   renderEntrees: function () {
-    const countWatched = `alasql('select value count(distinct id) from watched')`
-    const countTotal = `alasql('select value count(distinct id) from entries')`
+    const countAllWatched = `alasql('select value count(distinct id) from watched')`
+    const countEntriesWatched = `alasql('select value count(distinct entries.id) from entries join watched using ie_key, id')`
 
     const tableHead = `<thead>
   <tr>
@@ -272,16 +282,18 @@ window.app = {
         <div style="display:flex;justify-content: space-between;">
           <span
             x-text="'Videos ('+
-              $store.entries.length + ($store.sett.hideWatched && (${countWatched} > 0) ? ' shown; ' + ${countWatched} + ' watched or unavailable videos' : '') +')'"></span>
+              $store.entries.length + ($store.sett.hideWatched && (${countEntriesWatched} > 0)
+              ? ' shown; ' + ${countEntriesWatched} + ' watched or unavailable videos'
+              : '') +')'
+          "></span>
         </div>
       </template>
     </td>
     <td colspan="4">
       <p style="float:right;"
-        x-text="'Total: '
-                  + (${countTotal} - $store.entries.length) + ' of '+ ${countTotal} + ' watched ('
-                  + Math.round(((${countTotal} - $store.entries.length) / ${countTotal}) * 100.0) + '%); '
-                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
+        x-text="'Total watched: '
+                  + ${countAllWatched} + 'videos'
+        ">
       </p>
     </td>
   </tr>
