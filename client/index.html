@@ -82,7 +82,7 @@ chapmanjacobd @/t gmail
  <div id="addNew" x-data="{
        playlistToAdd: '',
        async submit($event) {
-         addNewInputSubmit.textContent = 'Loading'
+         addNewInputSubmit.textContent = 'Loading (this might take up to 30 seconds)'
          addNewInput.disabled = true
          addNewInputSubmit.disabled = true
          app.fetchPlaylist(this.playlistToAdd)
@@ -110,7 +110,7 @@ chapmanjacobd @/t gmail
     </h3>
     <button type="button"
      @click="isLoading=true;app.fetchPlaylist(Math.random() > 0.5 ? 'https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm' : 'https://www.youtube.com/gags/videos/')"
-     x-text="isLoading ? 'lOaDiNg...' : 'or Load Demo Data ¯\\_(ツ)_/¯'"></button>
+     x-text="isLoading ? 'lOaDiNg... (this might take 30 seconds)' : 'or Load Demo Data ¯\\_(ツ)_/¯'"></button>
    </div>
   </template>
 
