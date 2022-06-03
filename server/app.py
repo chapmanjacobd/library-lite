@@ -25,21 +25,19 @@ ydl_opts = {
     # "subtitleslangs": "en.*,EN.*",
     # "playliststart": 2000, # an optimization needs to be made in yt-dlp to support some form of background backfilling/pagination. 2000-4000 takes 40 seconds instead of 20.
     "playlistend": 2000,
-    "rejecttitle": " |".join(
+    "rejecttitle": "|".join(
         [
             "Trailer",
             "Sneak Peek",
             "Preview",
             "Teaser",
             "Promo",
-            "Live Stream",
-            "Twitch",
             "Crypto",
-            "Meetup",
             "Montage",
             "Bitcoin",
             "Apology",
-            "Clip",
+            " Clip",
+            "Clip ",
             "Best of",
             "Compilation",
             "Top 10",
