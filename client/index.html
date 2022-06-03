@@ -165,7 +165,13 @@ chapmanjacobd @/t gmail
         <button type="button" @click="app.changeTheBackgroundColor">🪅 Change the background colour 🪅</button>
        </div>
 
-       <h4>Behavior</h4>
+       <h4>Download</h4>
+       <div>
+        <button type="button" @click="app.exportCSVEntries">Download Videos CSV</button>
+       </div>
+       <div>
+        <button type="button" @click="app.exportCSVPlaylists">Download Playlists CSV</button>
+       </div>
 
        <!-- <div>
         <input type="checkbox" id="automarkInput" x-model="$store.sett.automark">
@@ -175,14 +181,6 @@ chapmanjacobd @/t gmail
        <!-- <div>
         <button type="button" @click="app.refreshPlaylists">Refresh Playlists (delayed by 3 days)</button>
        </div> -->
-
-       <h4>Download</h4>
-       <div>
-        <button type="button" @click="app.exportCSVEntries">Download Videos CSV</button>
-       </div>
-       <div>
-        <button type="button" @click="app.exportCSVPlaylists">Download Playlists CSV</button>
-       </div>
 
        <h4>Database</h4>
        <!--
