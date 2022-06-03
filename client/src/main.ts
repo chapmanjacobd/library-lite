@@ -139,8 +139,14 @@ window.app = {
 
     app.cleanUpDuplicates('watched')
 
-    // alasql('create index entries_id_idx on entries (id)')
-    // alasql('create index entries_iekey_id_idx on entries (ie_key,id)')
+    try {
+      alasql('create index entries_id_idx on entries (id)')
+      alasql('create index entries_iekey_id_idx on entries (ie_key,id)')
+      alasql('create index entries_title_idx on entries (title)')
+
+    } catch (error) {
+      console.log(error);
+    }
 
     cleanup()
   },
