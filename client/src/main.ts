@@ -250,7 +250,7 @@ window.app = {
     <td colspan="2">
       <p style="float:right;"
         x-text="'All playlists: '
-                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + x.duration, 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
+                  + app.secondsToFriendlyTime($store.entries.reduce((p,x) => p + (x.duration ?? 0), 0)) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')">
       </p>
     </td>
   </tr>
