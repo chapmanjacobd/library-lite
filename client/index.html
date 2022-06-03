@@ -124,17 +124,7 @@ chapmanjacobd @/t gmail
 
        <h4>Display</h4>
 
-       <div>
-        <label for="entriesOrderByList">Order By</label>
-        <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy" x-on:change="app.refreshView">
-         <option value="random()">Random</option>
-         <option value="uploader">Uploader</option>
-         <option value="original_url">Playlist</option>
-         <option value="duration">Duration</option>
-         <option value="playlist_count">Playlist Count</option>
-         <option value="title">Title</option>
-        </select>
-       </div>
+
 
        <!-- <div>
         <label for="entriesLimitList">Max videos shown per playlist</label>
@@ -279,6 +269,7 @@ chapmanjacobd @/t gmail
 
 
     <div xdata id='fun' style="display: flex;">
+
      <div>
       <button type="button" @click="app.playRandom()">Play Random 🎲</button>
      </div>
@@ -314,6 +305,22 @@ chapmanjacobd @/t gmail
      </div>
 
     </div>
+
+    <div x-data style="margin: 1em 0;">
+     <label for="entriesOrderByList">Order By</label>
+     <select id="entriesOrderByList" x-model="$store.sett.entriesOrderBy" x-on:change="app.refreshView">
+      <option value="random()">Random</option>
+      <option value="duration">Duration, Short</option>
+      <option value="duration desc">Duration, Long</option>
+      <option value="uploader">Uploader, A-Z</option>
+      <option value="uploader desc">Uploader, Z-A</option>
+      <option value="title">Title, A-Z</option>
+      <option value="title desc">Title, Z-A</option>
+      <option value="original_url">Playlist</option>
+      <option value="playlist_count">Playlist Count</option>
+     </select>
+    </div>
+
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
      <div x-html="app.renderEntrees()"></div>
