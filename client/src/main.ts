@@ -1,7 +1,7 @@
 
 import alasql from 'alasql';
 import Alpine from 'alpinejs';
-import 'material-symbols/rounded.css';
+import 'material-icons/iconfont/outlined.css';
 import { vimeo, youtube } from './players';
 import './style.css';
 import { fullstory } from './tracking';
@@ -232,7 +232,7 @@ window.app = {
   <td>
     <span
       @click="alasql('delete from playlists where original_url = ?',[pl.original_url]);alasql('delete from entries where original_url = ?',[pl.original_url]);app.refreshView()"
-      style="cursor: pointer;" class="material-symbols-rounded">delete</span>
+      style="cursor: pointer;" class="material-icons-outlined">delete</span>
   </td>
   <td>
     <p x-text="
@@ -298,7 +298,7 @@ window.app = {
 
     const videoRow = html`<tr>
   <td>
-    <span @click="app.playVideo(v)" style="cursor: pointer;" class="material-symbols-rounded">play_circle</span>
+    <span @click="app.playVideo(v)" style="cursor: pointer;" class="material-icons-outlined">play_circle</span>
   </td>
   <td><span x-text="v.title" :title="v.title"></span></td>
   <td>
