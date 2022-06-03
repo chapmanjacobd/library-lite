@@ -4,6 +4,7 @@ import Alpine from 'alpinejs';
 import 'material-symbols/rounded.css';
 import { vimeo, youtube } from './players';
 import './style.css';
+import { fullstory } from './tracking';
 import { Entree, Playlist } from './types';
 import { downloadObjectAsJson, fileToJSON, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime } from './utils';
 
@@ -235,9 +236,7 @@ window.app = {
   </td>
   <td>
     <p x-text="
-          (pl.playlist_count - ${plVideosCount}) + ' of '+ pl.playlist_count + ' watched ('
-        + Math.round(((pl.playlist_count - ${plVideosCount}) / pl.playlist_count) * 100.0) + '%); '
-        + app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
+          app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
       "></p>
   </td>
 </tr>`
@@ -385,4 +384,4 @@ if (devMode) {
 Alpine.start()
 app.refreshView()
 
-// if (!devMode && Math.random() < 0.05) fullstory();
+if (!devMode && Math.random() < 0.05) fullstory();
