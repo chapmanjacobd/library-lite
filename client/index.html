@@ -97,16 +97,15 @@ chapmanjacobd @/t gmail
   </div>
  </div>
 
- <div x-data>
+ <div x-data="{isLoading:false}">
   <template x-if="$store.playlists.length == 0">
    <div style="text-align: center;min-height: 20em;position: relative;top: 2em;">
     <h3>
      Add a playlist or channel URL to get started
     </h3>
     <button type="button"
-     @click="$store.sett.autoplay=true;Math.random() > 0.5 ? app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm') : app.fetchPlaylist('https://www.youtube.com/gags/videos/')">or
-     Load Demo
-     Data ¯\_(ツ)_/¯</button>
+     @click="isLoading=true;app.fetchPlaylist(Math.random() > 0.5 ? 'https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm' : 'https://www.youtube.com/gags/videos/')"
+     x-text="isLoading ? 'lOaDiNg...' : 'or Load Demo Data ¯\\_(ツ)_/¯'"></button>
    </div>
   </template>
 
@@ -132,7 +131,7 @@ chapmanjacobd @/t gmail
         </select>
        </div>
 
-       <div>
+       <!-- <div>
         <label for="entriesLimitList">Max videos shown per playlist</label>
         <select id="entriesLimitList" x-model="$store.sett.entriesLimit">
          <option value="">No Limit</option>
@@ -145,7 +144,7 @@ chapmanjacobd @/t gmail
          <option>1000</option>
          <option>5000</option>
         </select>
-       </div>
+       </div> -->
 
        <div @click="$nextTick(() => { app.refreshView() });">
         <input type="checkbox" id="hideWatched" x-model="$store.sett.hideWatched">
@@ -163,20 +162,16 @@ chapmanjacobd @/t gmail
 
        <h4>Behavior</h4>
 
-       <div>
+       <!-- <div>
         <input type="checkbox" id="automarkInput" x-model="$store.sett.automark">
         <label for="automarkInput">Auto-mark played videos as watched</label>
-       </div>
+       </div> -->
 
-       <div>
+       <!-- <div>
         <button type="button" @click="app.refreshPlaylists">Refresh Playlists (delayed by 3 days)</button>
-       </div>
+       </div> -->
 
        <h4>Download</h4>
-       <div>
-        <button type="button" @click="app.exportDB()">Export Database</button>
-       </div>
-
        <div>
         <button type="button" @click="app.exportCSVEntries">Download Videos CSV</button>
        </div>
@@ -185,7 +180,7 @@ chapmanjacobd @/t gmail
        </div>
 
        <h4>Database</h4>
-
+       <!--
        <div id="newDB" x-data="{
         newdbname: '',
         submit($event) {
@@ -199,12 +194,16 @@ chapmanjacobd @/t gmail
           @keyup.enter="submit" />
          <button id="newDBInputSubmit" type="button" @click="submit()">Create</button>
         </div>
+       </div> -->
+
+       <div>
+        <button type="button" @click="app.exportDB()">Export Database</button>
        </div>
 
        <div class="advSettings">
         <button type="button" @click="app.deleteDB()" x-text="`Delete ${alasql.databases.dbo.databaseid} 💣`"></button>
        </div>
-
+       <!--
        <div id="dbSelector" x-data>
         <label for="switchDBInput">Switch DB</label>
         <select id="switchDBInput" x-model="$store.sett.selectedDB" x-on:change="app.switchDB($store.sett.selectedDB)">
@@ -212,12 +211,12 @@ chapmanjacobd @/t gmail
           <option x-text="db"></option>
          </template>
         </select>
-       </div>
+       </div> -->
 
-       <div id="importDBInput">
-        <label for="importDBFile">Import DB</label>
+       <!-- <div id="importDBInput">
+        <label for="importDBFile">Import DB (this might not actually work so be careful)</label>
         <input id="importDBFile" type="file" onchange="app.importDB(event)" />
-       </div>
+       </div> -->
 
       </div>
      </div>
@@ -232,17 +231,9 @@ chapmanjacobd @/t gmail
        <button type="button" @click="alasql('delete from playlists;delete from entries;');app.refreshView()">⚠️
         Delete
         All
-        Playlists/Videos ⚠️</button>
+        Playlists/Videos</button>
       </div>
 
-      <div class="advSettings">
-       <button type="button" @click="alasql('delete from watched')">❗☠️ Delete All Watched
-        💣</button>
-       <span>Recommend exporting your database before clicking. If you add playlists which reference the videos you've
-        already
-        seen
-        they will be hidden for you--unless you click this button.</span>
-      </div>
      </details>
 
 

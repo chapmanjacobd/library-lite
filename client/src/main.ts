@@ -47,10 +47,10 @@ window.app = {
 
     // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
 
-    if ((alasql('select count(*) from entries')) > 0)
+    if ((alasql('select value count(*) from entries')) > 0)
       alasql('DELETE from entries where original_url = ?', data.entries![0].original_url)
 
-    alasql('SELECT * INTO entries FROM ?', [data.entries]);
+    alasql('INSERT INTO entries SELECT * FROM ?', [data.entries]);
 
     alasql(`SELECT ie_key, id INTO watched from entries
           where title in (select _ from ?)`, [["[Deleted video]", "[Private video]"]]
@@ -112,11 +112,6 @@ window.app = {
     const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
 
-    if (!alasql.tables.entries.data) return;
-
-    // const entriesColumns = Object.keys(alasql.tables.entries.data[0]).join(',')
-    // create view v_entries(${ entriesColumns }, watched) as
-
     let entriesSQL = `select entries.*
         , watched.id IS NOT NULL as watched
       from entries
@@ -147,11 +142,14 @@ window.app = {
 
     const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
 
-    const playlists = alasql(`select playlists.*, sum(entries.duration) duration from playlists
+    let playlistsSQL = `select playlists.*, sum(entries.duration) duration from playlists
       join entries on entries.original_url = playlists.original_url
       ${playlistWhere}
       group by playlists.original_url
-    `)
+    `
+    // console.log(playlistsSQL);
+
+    const playlists = alasql(playlistsSQL)
     Alpine.store('playlists', playlists) // thanks @stackoverflow:Dauros
     Alpine.store('entries', entries)
   },
@@ -164,9 +162,9 @@ window.app = {
   createDB: function (dbname: string) {
     dbname = dbname + 'DB'
 
-    alasql(`CREATE localstorage DATABASE IF NOT EXISTS ${dbname}`)
-    alasql(`ATTACH localstorage DATABASE ${dbname}`)
-    alasql(`USE ${dbname}`)
+    alasql(`CREATE localStorage DATABASE IF NOT EXISTS ${dbname}`)
+    alasql(`ATTACH localStorage DATABASE ${dbname}`)
+    alasql(`USE DATABASE ${dbname}`)
     alasql('SET AUTOCOMMIT ON')
 
     alasql('CREATE TABLE IF NOT EXISTS entries');
@@ -176,7 +174,7 @@ window.app = {
   switchDB: function (dbname: string) {
     const oldDB = alasql.databases.dbo.databaseid
     alasql(`DETACH DATABASE ${oldDB}`)
-    alasql(`ATTACH localstorage DATABASE ${dbname}`)
+    alasql(`ATTACH localStorage DATABASE ${dbname}`)
     app.refreshView()
   },
   importDB: async function (event: Event) {
@@ -197,7 +195,7 @@ window.app = {
     alasql('drop table entries')
     alasql('drop table playlists')
     alasql(`DETACH database ${dbname}`)
-    alasql(`drop localstorage database ${dbname}`)
+    alasql(`drop localStorage database ${dbname}`)
     location.reload()
   },
   isVideoWatched: function (v: { ie_key: string; id: string; }) {
@@ -234,8 +232,10 @@ window.app = {
   <tr>
     <td colspan="100">
         <div>
-          <span
+          <span>Playlists</span>
+          <!-- <span
             x-text="'Playlists ('+ $store.playlists.length + ($store.sett.hideWatched && ${countWatched} > 0 ? (' shown; ' + ${countWatched} + ' completely watched playlist' + (${countWatched} > 1 ? 's' : '')) : '') +')'"></span>
+          -->
         </div>
     </td>
   </tr>
@@ -243,7 +243,7 @@ window.app = {
     <td>Title</td>
     <td title="Playlist Author">Channel</td>
     <td>Delete</td>
-    <td>Duration</td>
+    <!-- <td>Duration</td> -->
   </tr>
 </thead>`
 
@@ -255,13 +255,13 @@ window.app = {
       @click="alasql('delete from playlists where original_url = ?',[pl.original_url]);alasql('delete from entries where original_url = ?',[pl.original_url]);app.refreshView()"
       style="cursor: pointer;" class="material-symbols-rounded">delete</span>
   </td>
-  <td>
+  <!-- <td>
     <p x-text="
           (pl.playlist_count - $store.entries.filter(x=> x.original_url == pl.original_url).length) + ' of '+ pl.playlist_count + ' watched ('
         + Math.round((pl.playlist_count - $store.entries.filter(x=> x.original_url == pl.original_url).length) / pl.playlist_count) * 100.0 + '%); '
         + app.secondsToFriendlyTime(pl.duration) + ' ' + ($store.sett.hideWatched ? 'remaining' : 'total')
       "></p>
-  </td>
+  </td> -->
 </tr>`
 
     const tableFoot = html`<template x-if="$store.playlists > 0">

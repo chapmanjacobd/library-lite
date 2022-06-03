@@ -4,7 +4,7 @@ import yt_dlp
 from cachetools import func
 from zstandard import ZstdCompressor
 
-from utils import THREE_DAYS, safe_del
+from utils import THREE_DAYS
 
 ydl_opts = {
     "skip_download": True,
@@ -25,7 +25,7 @@ ydl_opts = {
     # "subtitleslangs": "en.*,EN.*",
     # "playliststart": 2000, # an optimization needs to be made in yt-dlp to support some form of background backfilling/pagination. 2000-4000 takes 40 seconds instead of 20.
     "playlistend": 2000,
-    "rejecttitle": " | ".join(
+    "rejecttitle": " |".join(
         [
             "Trailer",
             "Sneak Peek",
@@ -40,6 +40,8 @@ ydl_opts = {
             "Bitcoin",
             "Apology",
             "Clip",
+            "Best of",
+            "Compilation",
             "Top 10",
             "Top 9",
             "Top 8",
