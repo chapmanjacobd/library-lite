@@ -111,9 +111,7 @@ window.app = {
       for (let v of app.timeshift(Alpine.store('entries'))) {
         if (Alpine.store('sett').autoplay) {
           app.playVideo(v)
-          await timer(10)
-          app.refreshView()
-          await timer(v.duration - 9)
+          await timer(v.duration)
         }
       }
     }
