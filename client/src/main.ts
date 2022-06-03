@@ -358,7 +358,7 @@ window.app = {
     return `<table>
   ${tableHead}
   <tbody>
-    <template x-for="(v, vindex) in $store.entries" :key="vindex">
+    <template x-for="(v, vindex) in $store.entries.slice(0,2000)" :key="vindex">
       ${videoRow}
     </template>
   </tbody>
