@@ -1,11 +1,6 @@
-deploy
+convert to Dexie
 
-shuffle mode (end)
-wadsworth constant (start)
-autoplay
-limit shown to n per playlist with option to show all
-refresh all subscriptions
-
+use views for entries, playlists -- consistent data, order by across all features
 
 
 Save settings between refresh--Alpine.persist

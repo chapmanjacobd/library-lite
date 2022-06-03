@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build --base=/eject/",
     "preview": "vite preview"
   },
   "devDependencies": {
@@ -13,9 +13,9 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "alasql": "^1.7.3",
+    "alasql": "^1.7.2",
     "alpinejs": "^3.10.2",
     "lite-youtube-embed": "^0.2.0",
-    "material-symbols": "^0.1.0"
+    "material-icons": "^1.11.1"
   }
 }

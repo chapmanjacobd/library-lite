@@ -1,12 +1,15 @@
 
 export interface Entree {
+    timeShifted: boolean
+    start?: number,
+    end?: number,
     _type: "url",
     ie_key: string, // Youtube
     id: "dQw4w9WgXcQ",
     url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     title: "Rick Astley - Never Gonna Give You Up (Official Music Video)",
     description: null,
-    duration: 213,
+    duration: number,
     view_count: null,
     uploader: "Rick Astley",
     channel_id: "UCuAXFkgsw1L7xaCfnd5JJOw",

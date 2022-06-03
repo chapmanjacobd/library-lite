@@ -6,11 +6,6 @@ THREE_DAYS = 60 * 60 * 24 * 3
 REGEXP_HTTP = re.compile(r"(?:http|https)://")
 
 
-def safe_del(dict, key):
-    if dict.get(key):
-        del dict[key]
-
-
 def format_url(url):
     if not REGEXP_HTTP.match(url):
         return "https://{}".format(url)

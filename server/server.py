@@ -1,8 +1,5 @@
 from urllib.parse import quote_plus, urlparse
 
-from slowapi.errors import RateLimitExceeded
-from slowapi.extension import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
@@ -11,13 +8,9 @@ from zstandard import ZstdDecompressor
 from app import fetch_playlist
 from utils import AlreadyJsonResponse, format_url
 
-limiter = Limiter(key_func=get_remote_address)
 app = Starlette(debug=False)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
-@limiter.limit("20/minute")
 def route_fetch_playlist(request: Request):
     query_params = request.query_params
     playlist = query_params.get("playlist")

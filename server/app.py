@@ -4,7 +4,7 @@ import yt_dlp
 from cachetools import func
 from zstandard import ZstdCompressor
 
-from utils import THREE_DAYS, safe_del
+from utils import THREE_DAYS
 
 ydl_opts = {
     "skip_download": True,
@@ -23,23 +23,23 @@ ydl_opts = {
     # "writesubtitles": True,
     # "writeautomaticsub": True,
     # "subtitleslangs": "en.*,EN.*",
-    # "playliststart": 2000, # an optimization needs to be made in yt-dlp to support this. 2000-4000 takes 40 seconds instead of 20.
+    # "playliststart": 2000, # an optimization needs to be made in yt-dlp to support some form of background backfilling/pagination. 2000-4000 takes 40 seconds instead of 20.
     "playlistend": 2000,
-    "rejecttitle": " | ".join(
+    "rejecttitle": "|".join(
         [
             "Trailer",
             "Sneak Peek",
             "Preview",
             "Teaser",
             "Promo",
-            "Live Stream",
-            "Twitch",
             "Crypto",
-            "Meetup",
             "Montage",
             "Bitcoin",
             "Apology",
-            "Clip",
+            " Clip",
+            "Clip ",
+            "Best of",
+            "Compilation",
             "Top 10",
             "Top 9",
             "Top 8",
@@ -83,51 +83,44 @@ def fetch_playlist(playlist):
         if not playlist_dict:
             return None
 
+        playlist_dict.pop("availability", None)
+        playlist_dict.pop("formats", None)
+        playlist_dict.pop("requested_formats", None)
+        playlist_dict.pop("thumbnails", None)
+
+        playlist_dict["playlist_count"] = playlist_dict.get("playlist_count") or len(playlist_dict)
+
         if playlist_dict.get("entries"):
             for v in playlist_dict["entries"]:
+                v.pop("thumbnails", None)
+                v.pop("_type", None)
+                v.pop("availability", None)
+                v.pop("channel_id", None)
+                v.pop("description", None)
+                v.pop("live_status", None)
+                v.pop("release_timestamp", None)
+                v.pop("view_count", None)
+                v.pop("upload_date", None)
+
                 v["channel"] = v.get("channel") or playlist_dict.get("channel")
-                v["channel_id"] = v.get("channel_id") or playlist_dict.get("channel_id")
-                v["channel_url"] = v.get("channel_url") or playlist_dict.get("channel_url")
-                v["extractor"] = v.get("extractor") or playlist_dict.get("extractor")
-                v["extractor_key"] = v.get("extractor_key") or playlist_dict.get("extractor_key")
+                v["original_url"] = playlist_dict.get("original_url")
+                v["playlist_count"] = v.get("playlist_count") or playlist_dict.get("playlist_count")
+                v["playlist_title"] = playlist_dict.get("title")
                 v["title"] = v.get("title") or playlist_dict.get("title")
                 v["uploader"] = v.get("uploader") or playlist_dict.get("uploader")
-                v["uploader_url"] = v.get("uploader_url") or playlist_dict.get("uploader_url")
-                v["view_count"] = v.get("view_count") or playlist_dict.get("view_count")
-                v["playlist_title"] = playlist_dict.get("title")
-                v["original_url"] = playlist_dict.get("original_url")
 
         if playlist_dict.get("entries") is None:
-            safe_del(playlist_dict, "formats")
-            safe_del(playlist_dict, "requested_formats")
-            playlist_dict = dict(
-                playlist_count=1,
-                availability=playlist_dict.get("availability"),
+            video_dict = dict(
                 channel=playlist_dict.get("channel"),
-                channel_follower_count=playlist_dict.get("channel_follower_count"),
-                channel_id=playlist_dict.get("channel_id"),
-                channel_url=playlist_dict.get("channel_url"),
-                description=playlist_dict.get("description"),
-                extractor=playlist_dict.get("extractor"),
-                extractor_key=playlist_dict.get("extractor_key"),
-                ie_key=playlist_dict.get("extractor_key"),
                 id=playlist_dict.get("id"),
+                ie_key=playlist_dict.get("extractor_key"),
                 original_url=playlist_dict.get("original_url"),
-                tags=playlist_dict.get("tags"),
-                thumbnails=playlist_dict.get("thumbnails"),
+                playlist_count=1,
                 title=playlist_dict.get("title"),
                 uploader=playlist_dict.get("uploader"),
-                uploader_id=playlist_dict.get("uploader_id"),
-                uploader_url=playlist_dict.get("uploader_url"),
-                url=playlist_dict.get("webpage_url") or playlist_dict.get("original_url"),
-                view_count=playlist_dict.get("view_count"),
-                webpage_url=playlist_dict.get("webpage_url"),
-                webpage_url_basename=playlist_dict.get("webpage_url_basename"),
-                webpage_url_domain=playlist_dict.get("webpage_url_domain"),
             )
-            playlist_dict = {**playlist_dict, "entries": [playlist_dict]}
+            playlist_dict = {**video_dict, "entries": [video_dict]}
 
-        # print(playlist_dict)
         cctx = ZstdCompressor(8)
         compressed = cctx.compress(
             json.dumps(
