@@ -37,12 +37,19 @@ Alpine.store('sett', {
 
 window.app = {
   log: function (txt: string) {
-    if (log.value.split('\n').slice(-2)[0] == txt) return;
-    log.value += txt + "\n"
-    log.scrollTop = log.scrollHeight;
+    if (window.log.value.split('\n').slice(-2)[0] == txt) return;
+    window.log.value += txt + "\n"
+    window.log.scrollTop = window.log.scrollHeight;
   },
   randomPASTEL, changeTheBackgroundColor, secondsToFriendlyTime,
   fetchPlaylist: async function (playlist: string) {
+    function cleanup() {
+      window.addNewInput.disabled = false
+      window.addNewInputSubmit.textContent = 'Submit'
+      window.addNewInputSubmit.disabled = false
+      app.refreshView()
+    }
+
     if (playlist.length < 5) return;
 
     app.log(`Getting data from ${playlist}`)
@@ -51,6 +58,9 @@ window.app = {
       .then(response => response.json())
       .then((data: Playlist) => {
         return data
+      }).catch((err) => {
+        cleanup()
+        throw err
       })
 
     // data.duration = data.entries!.reduce((p, x) => p + x.duration, 0)
@@ -75,10 +85,7 @@ window.app = {
     // alasql('create index entries_id_idx on entries (id)')
     // alasql('create index entries_iekey_id_idx on entries (ie_key,id)')
 
-    addNewInput.disabled = false
-    window.addNewInputSubmit.textContent = 'Submit'
-    window.addNewInputSubmit.disabled = false
-    app.refreshView()
+    cleanup()
   },
   timeshift: function (videos: Entree[]): Entree[] {
     if (videos[0].start) return videos;
@@ -98,7 +105,7 @@ window.app = {
     })
   },
   playVideo: function (v: Entree) {
-    app.log(`Playing ${v.title}`)
+    app.log(`Playing ${v.title} from ${v.original_url}`)
 
     app.markVideoWatched(v)
     Alpine.store('sett').selectedVideo = app.timeshift([v])[0]
