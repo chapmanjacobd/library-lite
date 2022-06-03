@@ -12,6 +12,7 @@ zstandard = "*"
 slowapi = "*"
 uvicorn = "*"
 gunicorn = "*"
+fastapi-utils = "*"
 
 [dev-packages]
 ssort = "*"

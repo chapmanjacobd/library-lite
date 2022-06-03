@@ -1,12 +1,14 @@
+import subprocess
 from urllib.parse import quote_plus, urlparse
 
+from fastapi_utils.tasks import repeat_every
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import PlainTextResponse
 from zstandard import ZstdDecompressor
 
 from app import fetch_playlist
-from utils import AlreadyJsonResponse, format_url
+from utils import FIVE_HOURS, AlreadyJsonResponse, format_url
 
 app = Starlette(debug=False)
 
@@ -42,3 +44,13 @@ def route_fetch_playlist(request: Request):
 
 
 app.add_route("/v1", route_fetch_playlist)
+
+
+@app.on_event("startup")
+@repeat_every(seconds=FIVE_HOURS, wait_first=True)
+def periodic_update():
+    try:
+        output = subprocess.check_output(["pipenv", "update"])
+        print(output.decode("ascii"))
+    except subprocess.CalledProcessError as e:
+        print(e.output)

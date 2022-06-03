@@ -38,6 +38,7 @@ Alpine.store('sett', {
 window.app = {
   log: function (txt: string) {
     if (window.log.value.split('\n').slice(-2)[0] == txt) return;
+    window.eventLog.open = true
     window.log.value += txt + "\n"
     window.log.scrollTop = window.log.scrollHeight;
   },
@@ -59,6 +60,7 @@ window.app = {
       .then((data: Playlist) => {
         return data
       }).catch((err) => {
+        app.log(`Could not load ${playlist}`);
         cleanup()
         throw err
       })
@@ -105,8 +107,6 @@ window.app = {
     })
   },
   playVideo: function (v: Entree) {
-    app.log(`Playing ${v.title} from ${v.original_url}`)
-
     app.markVideoWatched(v)
     Alpine.store('sett').selectedVideo = app.timeshift([v])[0]
     Alpine.nextTick(() => { app.refreshView() })
@@ -116,11 +116,15 @@ window.app = {
 
     async function run() {
       const videos = app.timeshift(Alpine.store('entries'))
+
       for (let v of videos) {
+        const oldCount = videos.length
         if (Alpine.store('sett').autoplay) {
-          const oldCount = videos.length
-          app.playVideo(v)
-          await timer(v.duration)
+
+          if (v.duration && v.duration > 1) {
+            app.playVideo(v)
+            await timer(v.duration)
+          }
 
           const newCount = Alpine.store('entries').length
           if (newCount > oldCount) {
@@ -138,6 +142,11 @@ window.app = {
   stopAutomaticPlay: function () {
     app.log('Stopping autoplay')
     Alpine.store('sett').autoplay = false
+  },
+  playRandom: function () {
+    if (Alpine.store('sett').autoplay)
+      app.stopAutomaticPlay();
+    app.playVideo(alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0])
   },
   refreshView: function () {
     let constraints: string[] = []
@@ -172,7 +181,6 @@ window.app = {
     //   console.log(entriesSQL);
     // }
 
-
     const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
 
     let playlistsSQL = `select playlists.*, sum(entries.duration) duration from playlists
@@ -193,15 +201,15 @@ window.app = {
     alasql("SELECT * INTO CSV('videos.csv',{headers:true}) FROM ?", [Alpine.store('entries')])
     app.log('Videos CSV Exported')
   },
-  isVideoWatched: function (v: { ie_key: string; id: string; }) {
+  isVideoWatched: function (v: Entree) {
     return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
   },
-  markVideoWatched: function (v: { ie_key: string; id: string; }) {
+  markVideoWatched: function (v: Entree) {
     // if (app.isVideoWatched(v)) return;
+    app.log(`Marked as watched ${v.title} [${v.id}] of ${v.original_url}`)
     alasql('INSERT INTO watched SELECT * FROM ?', [[{ ie_key: v.ie_key, id: v.id }]])
-    app.log(`Marked ${v.ie_key} video ${v.id} as watched`)
   },
-  markVideoUnwatched: function (v: { ie_key: string; id: string; }) {
+  markVideoUnwatched: function (v: Entree) {
     alasql('DELETE FROM watched where ie_key=? and id=?', [v.ie_key, v.id])
     app.log(`Marked ${v.ie_key} video ${v.id} as unwatched`)
   },
@@ -209,6 +217,12 @@ window.app = {
     const d = alasql(`select distinct * from ${table}`)
     alasql(`delete from ${table}`)
     alasql(`insert into ${table} (ie_key, id) select ie_key, id from ?`, [d])
+  },
+  deletePlaylist: function (pl: Playlist) {
+    alasql('delete from playlists where original_url = ?', [pl.original_url]);
+    alasql('delete from entries where original_url = ?', [pl.original_url]);
+    app.refreshView()
+    app.log(`Deleted playlist ${pl.original_url}`)
   },
   renderVideo: function (v: Entree) {
     function wrapPlayer(player: string) {
@@ -223,7 +237,6 @@ window.app = {
     return rhtml
   },
   renderPlaylists: function () {
-
     const countWatched = `alasql('select value count(distinct id) from watched')`
     const countTotal = `alasql('select value count(distinct id) from entries')`
 
@@ -254,9 +267,7 @@ window.app = {
   <td><a :href="pl.webpage_url" x-text="pl.title"></a></td>
   <td><a :href="pl.channel_url" x-text="pl.uploader"></a></td>
   <td>
-    <span
-      @click="alasql('delete from playlists where original_url = ?',[pl.original_url]);alasql('delete from entries where original_url = ?',[pl.original_url]);app.refreshView()"
-      style="cursor: pointer;" class="material-icons-outlined">delete</span>
+    <span @click="app.deletePlaylist(pl)" style="cursor: pointer;" class="material-icons-outlined">delete</span>
   </td>
   <td>
     <p x-text="
