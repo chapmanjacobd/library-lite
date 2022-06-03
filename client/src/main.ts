@@ -290,11 +290,7 @@ window.app = {
       </template>
     </td>
     <td colspan="4">
-      <p style="float:right;"
-        x-text="'Total watched: '
-                  + ${countAllWatched} + 'videos'
-        ">
-      </p>
+      <p style="float:right;" x-text="'Total watched: '+ ${countAllWatched} + ' videos'"></p>
     </td>
   </tr>
   <tr>
