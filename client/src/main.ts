@@ -32,7 +32,7 @@ Alpine.store('sett', {
   entriesOrderBy: 'random()',
   entriesLimit: '', compact: true, selectedVideo: {},
   automark: true, autoplay: false, wadsworth: false, shuffleMode: "",
-  selectedDB: 'RuntimeDB'
+  selectedDB: 'RuntimeDB', search: ''
 })
 
 window.app = {
@@ -43,6 +43,61 @@ window.app = {
     window.log.scrollTop = window.log.scrollHeight;
   },
   randomPASTEL, changeTheBackgroundColor, secondsToFriendlyTime,
+  refreshView: function () {
+    let constraints: string[] = []
+    const search = Alpine.store('sett').search.toLowerCase().replace(' ', '%')
+
+    if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')
+    if (search != '') {
+      constraints.push(`entries.title like "%${search}%"`)
+    }
+
+    const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
+    const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
+
+    let entriesSQL = `select entries.*
+        , watched.id IS NOT NULL as watched
+      from entries
+      outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
+      ${entriesWhere}
+      ${entriesOrderBy}
+    `
+    // const groupLimit = Alpine.store('sett').entriesLimit
+    // if (groupLimit != '') {
+    //   const perPlaylistSQL = alasql(`select value from playlists`).map((pl: Playlist) => {
+    //     const perPlaylistConstraints = [...constraints, `entries.original_url = "${pl.original_url}"`]
+    //     const entriesWhere = perPlaylistConstraints.length > 0 ? 'where ' + perPlaylistConstraints.join(' and ') : ''
+    //     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
+
+    //     return `select entries.*
+    //     , watched.id IS NOT NULL as watched
+    //   from entries
+    //   outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
+    //   join playlists on playlists.original_url = entries.original_url
+    //   ${entriesWhere}
+    //   ${entriesOrderBy} LIMIT ${groupLimit}`
+    //   })
+    //   entriesSQL = perPlaylistSQL.join(' UNION ALL ')
+    //   console.log(entriesSQL);
+    // }
+
+    const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
+
+    let playlistsSQL = `select playlists.*, sum(entries.duration) duration from playlists
+      join entries on entries.original_url = playlists.original_url
+      ${playlistWhere}
+      group by playlists.original_url
+    `
+    // console.log(playlistsSQL);
+
+    let entries = alasql(entriesSQL)
+
+    if (entries.length == 0)
+      entries = [{ title: `"${search}" did not match anything in the database` }]
+
+    Alpine.store('playlists', alasql(playlistsSQL)) // thanks @stackoverflow:Dauros
+    Alpine.store('entries', entries)
+  },
   fetchPlaylist: async function (playlist: string) {
     function cleanup() {
       window.addNewInput.disabled = false
@@ -147,51 +202,6 @@ window.app = {
     if (Alpine.store('sett').autoplay)
       app.stopAutomaticPlay();
     app.playVideo(alasql('select value from entries where id not in (select id from watched) order by random() limit 1')[0])
-  },
-  refreshView: function () {
-    let constraints: string[] = []
-    if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')
-
-    const entriesWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
-    const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
-
-    let entriesSQL = `select entries.*
-        , watched.id IS NOT NULL as watched
-      from entries
-      outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
-      ${entriesWhere}
-      ${entriesOrderBy}
-    `
-    // const groupLimit = Alpine.store('sett').entriesLimit
-    // if (groupLimit != '') {
-    //   const perPlaylistSQL = alasql(`select value from playlists`).map((pl: Playlist) => {
-    //     const perPlaylistConstraints = [...constraints, `entries.original_url = "${pl.original_url}"`]
-    //     const entriesWhere = perPlaylistConstraints.length > 0 ? 'where ' + perPlaylistConstraints.join(' and ') : ''
-    //     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
-
-    //     return `select entries.*
-    //     , watched.id IS NOT NULL as watched
-    //   from entries
-    //   outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
-    //   join playlists on playlists.original_url = entries.original_url
-    //   ${entriesWhere}
-    //   ${entriesOrderBy} LIMIT ${groupLimit}`
-    //   })
-    //   entriesSQL = perPlaylistSQL.join(' UNION ALL ')
-    //   console.log(entriesSQL);
-    // }
-
-    const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
-
-    let playlistsSQL = `select playlists.*, sum(entries.duration) duration from playlists
-      join entries on entries.original_url = playlists.original_url
-      ${playlistWhere}
-      group by playlists.original_url
-    `
-    // console.log(playlistsSQL);
-
-    Alpine.store('playlists', alasql(playlistsSQL)) // thanks @stackoverflow:Dauros
-    Alpine.store('entries', alasql(entriesSQL))
   },
   exportCSVPlaylists: function () {
     alasql("SELECT * INTO CSV('playlists.csv',{headers:true}) FROM ?", [Alpine.store('playlists')])

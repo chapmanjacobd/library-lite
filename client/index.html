@@ -80,7 +80,7 @@ chapmanjacobd @/t gmail
  </div>
 
  <div x-data style="margin: 1em 0;">
-  <template x-if="$store.playlists.length > 0">
+  <template x-if="$store.entries.length > 0">
 
    <div id='fun' style="display: flex;">
 
@@ -163,7 +163,7 @@ chapmanjacobd @/t gmail
  </details>
 
  <div x-data="{isLoading:false}">
-  <template x-if="$store.playlists.length == 0">
+  <template x-if="$store.entries.length == 0">
    <div style="text-align: center;min-height: 20em;position: relative;top: 2em;">
     <h3>
      Add a playlist or channel URL to get started
@@ -174,7 +174,7 @@ chapmanjacobd @/t gmail
    </div>
   </template>
 
-  <template x-if="$store.playlists.length > 0">
+  <template x-if="$store.entries.length > 0">
    <div>
 
 
@@ -327,6 +327,12 @@ chapmanjacobd @/t gmail
      <h6>Something else seems wrong</h6>
      <p>You can submit a bug report <a href="https://github.com/chapmanjacobd/lb-lite/issues/new">here</a>.</p>
     </details>
+
+    <div id="search">
+     <label for="searchInput">Search:</label>
+     <input type="text" name="searchInput" id="searchInput" x-model="$store.sett.search" placeholder="Filter"
+      x-on:input.debounce.200="app.refreshView()">
+    </div>
 
     <div id="tableContainer" :style="$store.sett.compact ? 'white-space: nowrap;' : ''">
      <div x-html="app.renderEntrees()"></div>
