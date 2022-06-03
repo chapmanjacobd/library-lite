@@ -108,10 +108,19 @@ window.app = {
     const timer = (s: number) => new Promise(res => setTimeout(res, s * 1000))
 
     async function run() {
-      for (let v of app.timeshift(Alpine.store('entries'))) {
+      const videos = app.timeshift(Alpine.store('entries'))
+      for (let v of videos) {
         if (Alpine.store('sett').autoplay) {
+          const oldCount = videos.length
           app.playVideo(v)
           await timer(v.duration)
+
+          const newCount = Alpine.store('entries').length
+          if (newCount > oldCount) {
+            run()
+            break;
+          }
+
         }
       }
     }
