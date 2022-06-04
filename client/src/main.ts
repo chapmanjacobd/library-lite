@@ -92,7 +92,7 @@ window.app = {
 
     let entries = alasql(entriesSQL)
 
-    if (entries.length == 0)
+    if (entries.length == 0 && search !== '')
       entries = [{ title: `"${search}" did not match anything in the database` }]
 
     Alpine.store('playlists', alasql(playlistsSQL)) // thanks @stackoverflow:Dauros
