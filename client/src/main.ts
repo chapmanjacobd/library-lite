@@ -1,27 +1,19 @@
 
 
 import Alpine from 'alpinejs';
-<<<<<<< HEAD
 import Dexie, { Collection } from "dexie";
 import { exportDB, importDB, peekImportFile } from "dexie-export-import";
 import { ExportProgress } from 'dexie-export-import/dist/export';
 import { importInto, ImportProgress } from 'dexie-export-import/dist/import';
-=======
->>>>>>> origin/main
 import 'material-icons/iconfont/outlined.css';
 import { vimeo, youtube } from './players';
 import { createStore } from './schema';
 import './style.css';
 import { fullstory } from './tracking';
 import { Entree, Playlist } from './types';
-<<<<<<< HEAD
 import { downloadBlob, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime, shuffle } from './utils';
 
 
-=======
-import { downloadObjectAsJson, fileToJSON, html, onomonopia, randimal, randomPASTEL, secondsToFriendlyTime, shuffle } from './utils';
-
->>>>>>> origin/main
 const devMode = window.location.hostname == 'localhost';
 
 function changeTheBackgroundColor() {
@@ -58,19 +50,8 @@ window.app = {
     window.log.scrollTop = window.log.scrollHeight;
   },
   randomPASTEL, changeTheBackgroundColor, secondsToFriendlyTime,
-<<<<<<< HEAD
   refreshView: async function () {
     let constraints: string[] = []
-=======
-  refreshView: function () {
-    let constraints: string[] = []
-    const search = Alpine.store('sett').search.toLowerCase().replace(' ', '%')
-
-    if (Alpine.store('sett').hideWatched) constraints.push('entries.id not in (select distinct id from watched)')
-    if (search != '') {
-      constraints.push(`entries.title like "%${search}%"`)
-    }
->>>>>>> origin/main
 
     const db = window.dbs[Alpine.store('sett').selectedDB]
     await db.transaction("rw", db.table('playlists'), db.table('entries'), db.table('watched'), async () => {
@@ -110,7 +91,6 @@ window.app = {
     //     const perPlaylistConstraints = [...constraints, `entries.original_url = "${pl.original_url}"`]
     //     const entriesWhere = perPlaylistConstraints.length > 0 ? 'where ' + perPlaylistConstraints.join(' and ') : ''
     //     const entriesOrderBy = ' order by ' + Alpine.store('sett').entriesOrderBy
-<<<<<<< HEAD
 
     //     return `select entries.*
     //     , watched.id IS NOT NULL as watched
@@ -125,20 +105,6 @@ window.app = {
     // }
 
 
-=======
-
-    //     return `select entries.*
-    //     , watched.id IS NOT NULL as watched
-    //   from entries
-    //   outer join watched on watched.id = entries.id and watched.ie_key = entries.ie_key
-    //   join playlists on playlists.original_url = entries.original_url
-    //   ${entriesWhere}
-    //   ${entriesOrderBy} LIMIT ${groupLimit}`
-    //   })
-    //   entriesSQL = perPlaylistSQL.join(' UNION ALL ')
-    //   console.log(entriesSQL);
-    // }
->>>>>>> origin/main
 
     const playlistWhere = constraints.length > 0 ? 'where ' + constraints.join(' and ') : ''
 
@@ -392,7 +358,6 @@ window.app = {
     alasql("SELECT * INTO CSV('videos.csv',{headers:true}) FROM ?", [Alpine.store('entries')])
     app.log('Videos CSV Exported')
   },
-<<<<<<< HEAD
   isWatched: function (v: Entree) {
     return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
   },
@@ -402,17 +367,6 @@ window.app = {
     alasql('INSERT INTO watched SELECT * FROM ?', [[{ ie_key: v.ie_key, id: v.id }]])
   },
   markUnwatched: function (v: Entree) {
-=======
-  isVideoWatched: function (v: Entree) {
-    return alasql('select value FROM watched where ie_key=? and id=?', [v.ie_key, v.id])?.length > 0
-  },
-  markVideoWatched: function (v: Entree) {
-    // if (app.isVideoWatched(v)) return;
-    app.log(`Marked as watched ${v.title} [${v.id}] of ${v.original_url}`)
-    alasql('INSERT INTO watched SELECT * FROM ?', [[{ ie_key: v.ie_key, id: v.id }]])
-  },
-  markVideoUnwatched: function (v: Entree) {
->>>>>>> origin/main
     alasql('DELETE FROM watched where ie_key=? and id=?', [v.ie_key, v.id])
     app.log(`Marked ${v.ie_key} video ${v.id} as unwatched`)
   },
@@ -436,11 +390,7 @@ window.app = {
     if (v.ie_key == 'Youtube') rhtml = wrapPlayer(youtube(v))
     if (v.ie_key == 'Vimeo') rhtml = wrapPlayer(vimeo(v))
 
-<<<<<<< HEAD
     if (rhtml !== '') app.markWatched(v)
-=======
-    if (rhtml !== '') app.markVideoWatched(v)
->>>>>>> origin/main
 
     return rhtml
   },
@@ -515,11 +465,7 @@ window.app = {
         <div style="display:flex;justify-content: space-between;">
           <span
             x-text="'Videos ('+
-<<<<<<< HEAD
               $store.entries.length.toLocaleString() + ($store.sett.hideWatched && (${countEntriesWatched} > 0)
-=======
-              $store.entries.length + ($store.sett.hideWatched && (${countEntriesWatched} > 0)
->>>>>>> origin/main
               ? '; ' + ${countEntriesWatched} + ' watched or unavailable videos'
               : '') +')'
           "></span>
@@ -578,7 +524,6 @@ window.app = {
 </table>`
   },
   createDB: function (dbname: string) {
-<<<<<<< HEAD
     let db = new Dexie(dbname);
     db = createStore(db)
 
@@ -640,56 +585,6 @@ if (devMode) {
   // app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
 }
 
-=======
-    dbname = dbname + 'DB'
-
-    alasql(`CREATE localStorage DATABASE IF NOT EXISTS ${dbname}`)
-    alasql(`ATTACH localStorage DATABASE ${dbname}`)
-    alasql(`USE DATABASE ${dbname}`)
-    alasql('SET AUTOCOMMIT ON')
-
-    alasql('CREATE TABLE IF NOT EXISTS entries');
-    alasql('CREATE TABLE IF NOT EXISTS playlists');
-    alasql('CREATE TABLE IF NOT EXISTS watched');
-  },
-  switchDB: function (dbname: string) {
-    const oldDB = alasql.databases.dbo.databaseid
-    alasql(`DETACH DATABASE ${oldDB}`)
-    alasql(`ATTACH localStorage DATABASE ${dbname}`)
-    app.refreshView()
-  },
-  importDB: async function (event: Event) {
-    const newdbname = event.target.files[0].name.split('.')[0].replace('(', '_').replace(')', '')
-
-    if (Object.keys(alasql.databases).includes(newdbname))
-      throw new Error("New DB has the same name as existing. Delete existing DB first or rename the file");
-
-    app.createDB(newdbname)
-    let data = await fileToJSON(event)
-    alasql.tables = data;
-    app.refreshView()
-  },
-  exportDB: function (dbname: string = alasql.databases.dbo.databaseid) {
-    downloadObjectAsJson(alasql.tables, dbname)
-  },
-  deleteDB: function (dbname: string = alasql.databases.dbo.databaseid) {
-    alasql('drop table entries')
-    alasql('drop table playlists')
-    alasql(`DETACH database ${dbname}`)
-    alasql(`drop localStorage database ${dbname}`)
-    location.reload()
-  },
-  randimal,
-  onomonopia,
-};
-
-app.createDB('Runtime')
-
-if (devMode) {
-  // app.fetchPlaylist('https://www.youtube.com/playlist?list=PLQhhRxYCuOXX4Ru03gUXURslatUNxk7Pm')
-}
-
->>>>>>> origin/main
 Alpine.start()
 app.refreshView()
 
