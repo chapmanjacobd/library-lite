@@ -2,7 +2,7 @@ export function html(...args: [string | TemplateStringsArray]) {
     return args
 }
 
-function shuffle(lst): string | any[] {
+export function shuffle(lst: any[]): any {
     return lst[Math.floor(Math.random() * lst.length)];
 };
 

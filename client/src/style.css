@@ -38,7 +38,8 @@ h6 {
   justify-content: center;
 }
 
-#addNew>label {
+#addNew>label,
+#search>label {
   font-size: 0.9rem;
   text-shadow: 1px 1px antiquewhite;
 }
