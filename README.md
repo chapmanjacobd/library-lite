@@ -1,2 +1,2 @@
 # lb-lite
-democratizing lb for the masses [℔]
+democratizing [lb](https://github.com/chapmanjacobd/library) for the masses [℔]
