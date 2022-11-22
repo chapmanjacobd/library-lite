@@ -114,7 +114,7 @@ chapmanjacobd @/t gmail
 
     <div>
      <button :style="$store.sett.autoplay ? 'background-color: #dcafb5;' : ''" type="button"
-      @click="$store.sett.autoplay=!$store.sett.autoplay;app.automaticPlay()">
+      @click="$store.sett.autoplay ? app.stopAutomaticPlay() : app.automaticPlay();$store.sett.autoplay=!$store.sett.autoplay">
       Autoplay 🤖</button>
     </div>
 
