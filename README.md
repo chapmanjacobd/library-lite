@@ -1,2 +1,2 @@
-# lb-lite
+# eject (lb-lite)
 democratizing [lb](https://github.com/chapmanjacobd/library) for the masses [℔]
